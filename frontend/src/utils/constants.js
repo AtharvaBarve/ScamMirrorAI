@@ -1,0 +1,1 @@
+export const API_BASE = ''; // relative to site root; Vite proxy will handle /api/*
