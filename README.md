@@ -118,4 +118,4 @@ scam-mirror-ai/
 
 ## License
 
-MIT – feel free to fork and adapt for your own hackathon projects.
+MIT – feel free to fork and adapt for your own hackathon projects.# ScamMirrorAI
