@@ -4,9 +4,15 @@ const ResultCard = ({ result }) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    const text = `Verdict: ${result.verdict}\nConfidence: ${
-      Math.round(result.confidence * 100)
-    }%\nExplanation: ${result.explanation}`;
+    const text = [
+      `Verdict: ${result.verdict}`,
+      `Confidence: ${Math.round(result.confidence * 100)}%`,
+      `Category: ${result.category}`,
+      `Risk Factors: ${result.risk_factors.length > 0 ? result.risk_factors.join(', ') : 'None'}`,
+      `Recommended Actions: ${result.recommended_actions.length > 0 ? result.recommended_actions.join(', ') : 'None'}`,
+      `Explanation: ${result.explanation}`,
+      `Processing Time: ${result.processing_time.toFixed(2)} seconds`,
+    ].join('\n');
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -46,9 +52,51 @@ const ResultCard = ({ result }) => {
 
       <div className='border-t pt-3'>
         <span className='block text-sm font-medium text-gray-700 mb-1'>
+          Category:
+        </span>
+        <span className='text-gray-700'>{result.category}</span>
+      </div>
+
+      <div className='border-t pt-3'>
+        <span className='block text-sm font-medium text-gray-700 mb-1'>
+          Risk Factors:
+        </span>
+        <span className='text-gray-700'>
+          {result.risk_factors.length > 0 ? result.risk_factors.map((f, i) => (
+            <span key={i} className='bg-gray-100 px-2 py-1 rounded text-sm mr-1 mb-1 inline-block'>
+              {f}
+            </span>
+          )) : 'None'}
+        </span>
+      </div>
+
+      <div className='border-t pt-3'>
+        <span className='block text-sm font-medium text-gray-700 mb-1'>
+          Recommended Actions:
+        </span>
+        <span className='text-gray-700'>
+          {result.recommended_actions.length > 0 ? result.recommended_actions.map((a, i) => (
+            <span key={i} className='bg-gray-100 px-2 py-1 rounded text-sm mr-1 mb-1 inline-block'>
+              {a}
+            </span>
+          )) : 'None'}
+        </span>
+      </div>
+
+      <div className='border-t pt-3'>
+        <span className='block text-sm font-medium text-gray-700 mb-1'>
           Explanation:
         </span>
         <p className='text-gray-700 leading-relaxed'>{result.explanation}</p>
+      </div>
+
+      <div className='border-t pt-3'>
+        <span className='block text-sm font-medium text-gray-700 mb-1'>
+          Processing Time:
+        </span>
+        <span className='text-gray-700'>
+          {result.processing_time.toFixed(2)} seconds
+        </span>
       </div>
 
       <div className='mt-4 flex justify-end space-x-2'>

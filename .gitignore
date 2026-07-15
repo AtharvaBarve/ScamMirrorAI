@@ -69,3 +69,15 @@ node_modules/
 dist/
 build/
 .vite/
+
+# Logs
+*.log
+backend/backend.log
+frontend/frontend.log
+
+# SQLite database
+*.db
+scam_mirror.db
+
+# Backend specific
+backend/backend/
