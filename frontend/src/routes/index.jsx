@@ -1,6 +1,6 @@
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import Layout from '../components/Layout';
-import Analyzer from '../components/Analyzer';
+import Homepage from '../components/Homepage';
 // Placeholder for future pages
 // import History from '../components/History';
 
@@ -9,7 +9,7 @@ const router = createHashRouter([
     path: '/',
     element: <Layout />,
     children: [
-      { index: true, element: <Analyzer /> },
+      { index: true, element: <Homepage /> },
       // { path: 'history', element: <History /> },
     ],
   },

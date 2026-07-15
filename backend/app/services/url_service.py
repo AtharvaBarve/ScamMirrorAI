@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 import asyncio
 from app.core.config import settings
 from app.services.cache_service import get, set
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def fetch_text(url: str) -> str:
     """
@@ -11,6 +14,10 @@ async def fetch_text(url: str) -> str:
     Limits the returned text to first 3000 characters to keep prompt size manageable.
     Results are cached for the duration of CACHE_TTL.
     """
+    # Validate URL format
+    if not url.startswith(('http://', 'https://')):
+        return "[Error: Invalid URL format. Please provide a URL starting with http:// or https://]"
+
     # Check cache first
     cache_key = f"url_text:{url}"
     cached = get(cache_key)
@@ -23,8 +30,23 @@ async def fetch_text(url: str) -> str:
             timeout=httpx.Timeout(10.0, read=20.0),
             headers={"User-Agent": "ScamMirrorBot/1.0"},
         ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
+            try:
+                resp = await client.get(url)
+                resp.raise_for_status()
+            except httpx.TimeoutException:
+                return "[Error: Request timed out. Please try again later or check the URL.]"
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    return "[Error: Page not found (404). Please check the URL and try again.]"
+                elif e.response.status_code == 403:
+                    return "[Error: Access forbidden (403). The website may be blocking automated access.]"
+                elif e.response.status_code >= 500:
+                    return f"[Error: Server error ({e.response.status_code}). Please try again later.]"
+                else:
+                    return f"[Error: HTTP {e.response.status_code}. Please check the URL and try again.]"
+            except httpx.RequestError as e:
+                return "[Error: Unable to connect to the server. Please check the URL and your internet connection.]"
+
             html = resp.text
 
         # Parse with BeautifulSoup
@@ -57,6 +79,5 @@ async def fetch_text(url: str) -> str:
         set(cache_key, combined)
         return combined
     except Exception as e:
-        # In case of any error, return an empty string or a placeholder.
-        # The caller can decide to treat this as unsafe or ask user to retry.
-        return f"[Error fetching URL: {str(e)}]"
+        logger.error(f"Unexpected error fetching URL {url}: {str(e)}")
+        return "[Error: An unexpected error occurred while processing the URL. Please try again.]"

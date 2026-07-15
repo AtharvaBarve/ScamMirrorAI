@@ -1,19 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import hashlib
+import json
 
 from app.schemas.analyze import AnalyzeRequest, AnalyzeResponse
 from app.core.database import get_db, Base
 from app.models.analysis import AnalysisHistory
-from app.services.claude_service import ClaudeService
+from app.services.hybrid_service import hybrid_service
 from app.services.url_service import fetch_text
-from app.services.cache_service import get, set
+from app.utils.input_validator import validate_and_sanitize_text
 
 router = APIRouter()
+
 
 def _hash_input(input_type: str, content: str) -> str:
     """Create a deterministic cache key from input."""
     return hashlib.sha256(f"{input_type}:{content}".encode()).hexdigest()
+
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(
@@ -23,19 +26,52 @@ async def analyze(
     """
     Analyze text or URL for scam likelihood.
     """
+    # Validate input - exactly one of text or url must be provided
+    if not payload.text and not payload.url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either 'text' or 'url' must be provided.",
+        )
+
+    if payload.text and payload.url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide either 'text' or 'url', not both.",
+        )
+
     # Determine input type and content
     if payload.text:
         input_type = "text"
-        input_content = payload.text.strip()
+        # Validate and sanitize text input
+        sanitized_text, error_msg = validate_and_sanitize_text(payload.text)
+        if error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid text input: {error_msg}"
+            )
+        input_content = sanitized_text
+        original_url = None
     elif payload.url:
         input_type = "url"
         # Fetch and extract text from URL
         input_content = await fetch_text(payload.url)
-        if not input_content or input_content.startswith("[Error"):
+        # Check if fetch_text returned an error message
+        if input_content.startswith("[Error:"):
+            # Extract the error message for better user feedback
+            error_message = input_content[8:-1] if input_content.endswith("]") else input_content[8:]
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Could not fetch or extract content from the provided URL.",
+                detail=f"Unable to process URL: {error_message}"
             )
+        # Validate and sanitize the extracted text
+        sanitized_text, error_msg = validate_and_sanitize_text(input_content)
+        if error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid content extracted from URL: {error_msg}"
+            )
+        input_content = sanitized_text
+        original_url = payload.url
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -47,20 +83,18 @@ async def analyze(
 
     # Build cache key
     cache_key = _hash_input(input_type, input_content)
+    from app.services.cache_service import get, set
     cached_result = get(cache_key)
     if cached_result is not None:
         # Return cached result
         return AnalyzeResponse(**cached_result)
 
-    # Call the AI service (ClaudeService) to get analysis
-    result_dict = await ClaudeService.call_nim(input_content)
-
-    # Ensure result dict has expected keys
-    if not all(k in result_dict for k in ("verdict", "explanation", "confidence")):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Invalid response from AI service.",
-        )
+    # Call the hybrid service to get analysis
+    result_dict = await hybrid_service.analyze(
+        input_type=input_type,
+        input_content=input_content,
+        original_url=original_url,
+    )
 
     # Persist to DB
     db_obj = AnalysisHistory(
@@ -69,6 +103,10 @@ async def analyze(
         verdict=result_dict["verdict"],
         explanation=result_dict["explanation"],
         confidence=float(result_dict["confidence"]),
+        category=result_dict["category"],
+        risk_factors=json.dumps(result_dict["risk_factors"]),
+        recommended_actions=json.dumps(result_dict["recommended_actions"]),
+        processing_time=result_dict["processing_time"],
     )
     db.add(db_obj)
     db.commit()
