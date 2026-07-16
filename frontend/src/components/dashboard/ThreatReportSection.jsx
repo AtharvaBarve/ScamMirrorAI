@@ -1,10 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useAnalysis } from '../../context/AnalysisContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import Button from '../ui/Button';
+import { FileText, Copy, Code, Download, FileJson } from 'lucide-react';
 
 const ThreatReportSection = () => {
   const { analysisResult: result } = useAnalysis();
   const [copied, setCopied] = useState(false);
-  const [reportFormat, setReportFormat] = useState('html'); // html or json
   const [isGenerating, setIsGenerating] = useState(false);
 
   if (!result) return null;
@@ -23,34 +25,42 @@ const ThreatReportSection = () => {
     }
   };
 
-  const handleDownloadReport = async () => {
+  const handleDownloadHTMLReport = async () => {
     setIsGenerating(true);
     try {
-      if (reportFormat === 'html') {
-        const htmlContent = generateHTMLReport();
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `threat-report-${reportId}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        const jsonContent = JSON.stringify(generateJSONReport(), null, 2);
-        const blob = new Blob([jsonContent], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `threat-report-${reportId}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
+      const htmlContent = generateHTMLReport();
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `threat-report-${reportId}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Failed to download report: ', err);
+      console.error('Failed to download HTML report: ', err);
+      alert('Failed to download report');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadJSONReport = async () => {
+    setIsGenerating(true);
+    try {
+      const jsonContent = JSON.stringify(generateJSONReport(), null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `threat-report-${reportId}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download JSON report: ', err);
       alert('Failed to download report');
     } finally {
       setIsGenerating(false);
@@ -97,8 +107,6 @@ COMMUNITY INTELLIGENCE
 ----------------------------------------
 Threat Family: ${result.community_intelligence?.threat_family || result.category || 'Unknown'}
 Reported Cases: ${result.community_intelligence?.report_count || 0}+
-Threat Trend: ${result.community_intelligence?.report_count && result.community_intelligence?.report_count > 1000 ? '↑ Increasing' : '→ Stable'}
-${Math.floor(Math.random() * 15) + 2}%
 First Seen: ${result.community_intelligence?.first_seen
   ? new Date(result.community_intelligence.first_seen).toLocaleDateString()
   : '2024-03-15'}
@@ -132,35 +140,36 @@ An AI-powered Threat Intelligence Platform
             margin: 20mm;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
+            color: #d1d5db;
+            background-color: #060611;
             margin: 0;
             padding: 20px;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: #11111a;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #1f2937;
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135°, #1e293b, #334155);
-            color: white;
+            background: #00E5FF;
+            color: #060611;
             padding: 30px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
             font-size: 24px;
+            font-weight: 800;
         }
         .header p {
             margin: 5px 0 0;
-            opacity: 0.9;
             font-size: 14px;
+            font-family: monospace;
         }
         .content {
             padding: 30px;
@@ -168,14 +177,14 @@ An AI-powered Threat Intelligence Platform
         .section {
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #1f2937;
         }
         .section:last-child {
             border-bottom: none;
             margin-bottom: 0;
         }
         .section h2 {
-            color: #1e293b;
+            color: #fff;
             font-size: 20px;
             margin-bottom: 15px;
             display: flex;
@@ -186,7 +195,7 @@ An AI-powered Threat Intelligence Platform
             display: inline-block;
             width: 4px;
             height: 24px;
-            background: linear-gradient(to top, #ff6b6b, #feca57);
+            background: #00E5FF;
             margin-right: 12px;
             border-radius: 2px;
         }
@@ -197,23 +206,23 @@ An AI-powered Threat Intelligence Platform
             margin-bottom: 20px;
         }
         .info-card {
-            background: #f8f9fa;
+            background: #1a1a24;
             border-radius: 8px;
             padding: 16px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #00E5FF;
         }
         .info-card h3 {
             margin: 0 0 8px 0;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #64748b;
+            color: #9ca3af;
         }
         .info-card p {
             margin: 0;
             font-size: 16px;
             font-weight: 600;
-            color: #333;
+            color: #fff;
         }
         .threat-level-badge {
             display: inline-block;
@@ -222,19 +231,18 @@ An AI-powered Threat Intelligence Platform
             font-size: 14px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .threat-level-high {
-            background: #fee2e2;
-            color: #dc2626;
+            background: rgba(255, 51, 102, 0.2);
+            color: #FF3366;
         }
         .threat-level-medium {
-            background: #fffbeb;
-            color: #d97706;
+            background: rgba(255, 179, 0, 0.2);
+            color: #FFB300;
         }
         .threat-level-low {
-            background: #dcfce7;
-            color: #16a34a;
+            background: rgba(0, 230, 118, 0.2);
+            color: #00E676;
         }
         .list {
             list-style: none;
@@ -242,7 +250,7 @@ An AI-powered Threat Intelligence Platform
         }
         .list li {
             padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #1f2937;
             display: flex;
             align-items: center;
         }
@@ -250,30 +258,29 @@ An AI-powered Threat Intelligence Platform
             border-bottom: none;
         }
         .list li::before {
-            content: '•';
-            color: #3b82f6;
+            content: '>';
+            color: #00E5FF;
+            font-family: monospace;
             font-weight: bold;
             display: inline-block;
-            width: 1em;
-            margin-left: -1em;
+            width: 1.5em;
         }
         .footer {
             text-align: center;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #64748b;
+            border-top: 1px solid #1f2937;
+            color: #6b7280;
             font-size: 14px;
+            font-family: monospace;
         }
         @media print {
             body {
                 background-color: white;
+                color: black;
             }
             .container {
-                box-shadow: none;
-            }
-            .no-print {
-                display: none;
+                border: none;
             }
         }
     </style>
@@ -350,9 +357,9 @@ An AI-powered Threat Intelligence Platform
                         <h3>Trend</h3>
                         <p>
                             ${result.community_intelligence?.report_count && result.community_intelligence?.report_count > 1000
-                              ? '<span style="color: #dc2626;">↑ Increasing</span>'
-                              : '<span style="color: #64748b;">→ Stable</span>'}
-                            <span style="font-size: 12px; color: #64748b; margin-left: 8px;">${Math.floor(Math.random() * 15) + 2}%</span>
+                              ? '<span style="color: #FF3366;">↑ Increasing</span>'
+                              : '<span style="color: #9ca3af;">→ Stable</span>'}
+                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">${Math.floor(Math.random() * 15) + 2}%</span>
                         </p>
                     </div>
                     <div class="info-card">
@@ -412,72 +419,87 @@ An AI-powered Threat Intelligence Platform
     return 'MEDIUM';
   };
 
+  const getThreatLevelColor = (verdict) => {
+    const level = getThreatLevel(verdict);
+    switch (level) {
+      case 'HIGH': return 'text-danger';
+      case 'LOW': return 'text-success';
+      case 'MEDIUM': return 'text-warning';
+      default: return 'text-gray-400';
+    }
+  };
+
   return (
-    <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
-      <h3 className='text-xl font-bold text-white flex items-center mb-4'>
-        <span className='mr-2'>📊</span>
-        Threat Intelligence Report
-      </h3>
-
-      <p className='text-gray-300 mb-6'>
-        Generate a professional threat intelligence report for documentation, sharing, or legal purposes.
-      </p>
-
-      <div className='space-y-4'>
-        <div className='flex space-x-3'>
-          <button
-            onClick={handleCopyReport}
-            className={`flex-1 bg-gradient-to-r from.[FFB703] to.[FF9E8D] hover:from-[FFC845] hover:to-[FFB7A0] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${copied ? 'opacity-80' : ''}`}
-            disabled={copied}
-          >
-            <span className='mr-2'>📋</span>
-            {copied ? 'Copied!' : 'Copy Report'}
-          </button>
-
-          <button
-            onClick={handleDownloadReport}
-            className={`flex-1 bg-gradient-to-r from.[6366F1] to.[8B5CF6] hover:from-[7C3AED] hover:to-[A78BFA] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isGenerating ? 'opacity-50 cursor-wait' : ''}`}
-            disabled={isGenerating}
-          >
-            <span className='mr-2'>💾</span>
-            {isGenerating ? 'Generating...' : 'Download Report'}
-          </button>
+    <Card className="h-full bg-surface/50 backdrop-blur-xl border-border">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-display flex items-center text-white">
+            <FileText className="w-5 h-5 text-primary mr-3" />
+            Threat Report
+          </CardTitle>
+          <div className="text-xs font-mono text-gray-500">
+            {new Date(result.created_at || Date.now()).toLocaleTimeString()}
+          </div>
         </div>
+      </CardHeader>
 
-        <div className='flex space-x-3 mt-4'>
-          <button
-            onClick={() => setReportFormat('html')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${reportFormat === 'html'
-              ? 'bg-[#111113/30] text-white'
-              : 'bg-[#111113/20] text-gray-300 hover:bg-[#111113/30] hover:text-white'}`}
-          >
-            HTML (Print-friendly)
-          </button>
+      <CardContent>
+        <p className="text-gray-400 mb-6 text-sm">
+          Your threat intelligence report is ready for download. Includes detailed analysis, evidence, and recommended actions.
+        </p>
 
-          <button
-            onClick={() => setReportFormat('json')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${reportFormat === 'json'
-              ? 'bg-[#111113/30] text-white'
-              : 'bg-[#111113/20] text-gray-300 hover:bg-[#111113/30] hover:text-white'}`}
-          >
-            JSON Data
-          </button>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button
+              variant="secondary"
+              onClick={handleCopyReport}
+              disabled={copied}
+              className="w-full"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={handleDownloadHTMLReport}
+              disabled={isGenerating}
+              className="w-full"
+            >
+              <Code className="w-4 h-4 mr-2" />
+              {isGenerating ? 'Generating...' : 'HTML'}
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={handleDownloadJSONReport}
+              disabled={isGenerating}
+              className="w-full"
+            >
+              <FileJson className="w-4 h-4 mr-2" />
+              {isGenerating ? 'Generating...' : 'JSON'}
+            </Button>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-border/50 text-sm font-mono flex flex-col space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Report ID:</span>
+              <span className="text-gray-300">{reportId}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Threat Level:</span>
+              <span className={`font-bold ${getThreatLevelColor(result.verdict)}`}>
+                {getThreatLevel(result.verdict)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Confidence:</span>
+              <span className="text-white font-bold">{Math.round(result.confidence * 100)}%</span>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className='mt-6 pt-4 border-t border-[#111113/20] text-sm text-gray-400'>
-        <p>Reports include:</p>
-        <ul className='list-disc list-inside space-y-1 mt-2'>
-          <li>Unique Report ID and Timestamp</li>
-          <li>Threat Classification (Family, Level, Score)</li>
-          <li>Detailed AI Analysis Explanation</li>
-          <li>Detected Threat Signals & Evidence</li>
-          <li>Recommended Safety Actions</li>
-          <li>Community Intelligence Context</li>
-          <li>Professional formatting for sharing and documentation</li>
-        </ul>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

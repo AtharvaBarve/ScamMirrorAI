@@ -1,12 +1,8 @@
 import React from 'react';
+import Badge from '../ui/Badge';
+import { AlertTriangle, Zap, Search } from 'lucide-react';
 
 const ThreatSignalCard = ({ threat }) => {
-  const severityColors = {
-    HIGH: '#FF4D6D',    // Red
-    MEDIUM: '#FFB703',  // Amber
-    LOW: '#22C55E'      // Green
-  };
-
   const severityLabels = {
     HIGH: 'High Risk',
     MEDIUM: 'Medium Risk',
@@ -14,37 +10,40 @@ const ThreatSignalCard = ({ threat }) => {
   };
 
   const severityIcons = {
-    HIGH: '⚠️',
-    MEDIUM: '⚡',
-    LOW: '🔍'
+    HIGH: <AlertTriangle className="w-6 h-6 text-danger" />,
+    MEDIUM: <Zap className="w-6 h-6 text-warning" />,
+    LOW: <Search className="w-6 h-6 text-success" />
+  };
+
+  const badgeVariant = {
+    HIGH: 'danger',
+    MEDIUM: 'warning',
+    LOW: 'success'
   };
 
   const severity = threat.severity || 'MEDIUM';
 
   return (
-    <div className='bg-[#111113/30] backdrop-blur-sm rounded-xl border border-[#111113/20] p-4 hover:bg-[#111113/40] transition-colors duration-200'>
-      <div className='flex items-start space-x-3'>
-        <div className='flex-shrink-0 text-2xl'>
-          {severityIcons[severity] || '🔍'}
+    <div className="bg-surface border border-border rounded-lg p-4 hover:border-primary/50 hover:bg-surface/80 transition-all duration-300">
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0 mt-1">
+          {severityIcons[severity] || <Search className="w-6 h-6 text-primary" />}
         </div>
-        <div className='flex-1'>
-          <h4 className='font-semibold text-white mb-1'>
-            {threat.name || 'Threat Detected'}
-          </h4>
-          <div className='flex items-center space-x-2 mb-2'>
-            <span className={`px-2 py-0.5 text-xs font-medium rounded-full
-              ${severity === 'HIGH' ? 'bg-red-500/20 text-red-400' :
-                severity === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
-                'bg-green-500/20 text-green-400'}`}>
+        <div className="flex-1">
+          <div className="flex items-start justify-between">
+            <h4 className="font-display font-semibold text-white mb-1">
+              {threat.name || 'Threat Detected'}
+            </h4>
+            <Badge variant={badgeVariant[severity]}>
               {severityLabels[severity]}
-            </span>
+            </Badge>
           </div>
-          <p className='text-gray-300 text-sm line-clamp-2'>
+          <p className="text-gray-400 text-sm mt-1 mb-3 line-clamp-2">
             {threat.description || 'Suspicious pattern detected in the input.'}
           </p>
           {threat.evidence && (
-            <div className='mt-2 pt-2 border-t border-[#111113/20]'>
-              <span className='text-xs text-gray-400 font-mono'>
+            <div className="mt-2 pt-2 border-t border-border/50">
+              <span className="text-xs text-gray-500 font-mono italic">
                 "{threat.evidence}"
               </span>
             </div>

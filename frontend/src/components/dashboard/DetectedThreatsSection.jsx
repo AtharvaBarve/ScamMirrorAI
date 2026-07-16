@@ -1,6 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import ThreatSignalCard from './ThreatSignalCard';
 import { useAnalysis } from '../../context/AnalysisContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Search } from 'lucide-react';
 
 const DetectedThreatsSection = () => {
   const { analysisResult: result } = useAnalysis();
@@ -11,8 +13,6 @@ const DetectedThreatsSection = () => {
   const category = result.category || 'Unknown';
 
   // Convert risk factors to threat objects for display
-  // In a real implementation with future backend endpoints,
-  // this would come from GET /community/threats or similar
   const threats = riskFactors.map((factor, index) => {
     // Map common risk factors to appropriate threat types and severities
     const threatMap = {
@@ -78,34 +78,33 @@ const DetectedThreatsSection = () => {
     });
   }
 
-  // If still no threats, show a message
-  if (threats.length === 0) {
-    return (
-      <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
-        <h3 className='text-xl font-bold text-white flex items-center mb-4'>
-          <span className='mr-2'>🔍</span>
-          Detected Threats
-        </h3>
-        <p className='text-gray-400 text-center py-8'>
-          No specific threat factors detected in this analysis.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
-      <h3 className='text-xl font-bold text-white flex items-center mb-4'>
-        <span className='mr-2'>🔍</span>
-        Detected Threats
-      </h3>
-
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        {threats.map((threat) => (
-          <ThreatSignalCard key={threat.id} threat={threat} />
-        ))}
-      </div>
-    </div>
+    <Card className="h-full bg-surface/50 backdrop-blur-xl border-border">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-display flex items-center text-white">
+            <Search className="w-5 h-5 text-primary mr-3" />
+            Detected Threats
+          </CardTitle>
+          <div className="text-xs font-mono text-gray-500">
+            {new Date(result.created_at || Date.now()).toLocaleTimeString()}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {threats.length === 0 ? (
+          <p className="text-gray-400 text-center py-8 font-mono text-sm">
+            No specific threat factors detected in this analysis.
+          </p>
+        ) : (
+          <div className="grid gap-4 mt-2">
+            {threats.map((threat) => (
+              <ThreatSignalCard key={threat.id} threat={threat} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

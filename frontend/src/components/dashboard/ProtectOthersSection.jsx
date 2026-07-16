@@ -1,5 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useAnalysis } from '../../context/AnalysisContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import Button from '../ui/Button';
+import { ShieldAlert, Copy, Share2, Download, CheckCircle2, Shield, Eye, X, Users, Activity } from 'lucide-react';
 
 const ProtectOthersSection = () => {
   const { analysisResult: result } = useAnalysis();
@@ -125,166 +128,120 @@ Stay vigilant and report suspicious activity.
 
   return (
     <>
-      <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
-        <h3 className='text-xl font-bold text-white flex items-center mb-4'>
-          <span className='mr-2'>🛡️</span>
-          Community Shield
-        </h3>
+      <Card className="h-full bg-surface/50 backdrop-blur-xl border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-display flex items-center text-white">
+            <ShieldAlert className="w-5 h-5 text-primary mr-3" />
+            Protection & Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-400 mb-6 text-sm">
+            Help protect our community by sharing verified scam alerts. Generate a community alert to warn others about this threat.
+          </p>
 
-        <p className='text-gray-300 mb-4'>
-          Help protect our community by sharing verified scam alerts. Generate a community alert to warn others about this threat.
-        </p>
-
-        <div className='space-y-3'>
-          <button
-            onClick={() => setShowGenerateModal(true)}
-            className='w-full bg-gradient-to-r from-[#FF4D6D] to-[#FF9E8D] hover:from-[#FF6B8B] hover:to-[#FFB7A0] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-          >
-            <span className='mr-2'>🚨</span>
-            Generate Community Alert
-          </button>
-
-          <div className='flex space-x-2'>
-            <button
-              onClick={handleCopyAlert}
-              className={`flex-1 bg-gradient-to-r from.[10b981] to.[059669] hover:from-[34d399] hover:to-[10b981] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isSharing ? 'opacity-50 cursor-wait' : ''}`}
-              disabled={isSharing}
+          <div className="space-y-4">
+            <Button 
+              onClick={() => setShowGenerateModal(true)} 
+              className="w-full h-12 bg-danger hover:bg-danger-hover text-white flex items-center justify-center border-0"
             >
-              <span className='mr-2'>📋</span>
-              {isSharing ? 'Sharing...' : 'Copy Alert'}
-            </button>
+              <ShieldAlert className="w-5 h-5 mr-2" />
+              Generate Community Alert
+            </Button>
 
-            <button
-              onClick={handleShareAlert}
-              className={`flex-1 bg-gradient-to-r from.[6366F1] to.[8B5CF6] hover:from-[7C3AED] hover:to-[A78BFA] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isSharing ? 'opacity-50 cursor-wait' : ''}`}
-              disabled={isSharing || !alertContent}
-            >
-              <span className='mr-2'>📤</span>
-              {isSharing ? 'Sharing...' : 'Share Alert'}
-            </button>
-
-            <button
-              onClick={handleDownloadAlert}
-              className={`flex-1 bg-gradient-to-r from.[8B5CF6] to.[6366F1] hover:from-[A78BFA] hover:to-[7C3AED] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
-            >
-              <span className='mr-2'>💾</span>
-              Download Alert
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button variant="secondary" onClick={handleCopyAlert} disabled={isSharing} className="w-full">
+                <Copy className="w-4 h-4 mr-2" />
+                Copy
+              </Button>
+              <Button variant="secondary" onClick={handleShareAlert} disabled={isSharing || !alertContent} className="w-full">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+              <Button variant="secondary" onClick={handleDownloadAlert} className="w-full">
+                <Download className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Generate Alert Modal */}
       {showGenerateModal && (
-        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50'>
-          <div className='bg-[#111113/80] backdrop-blur-sm rounded-3xl border border-[#111113/40] p-8 w-full max-w-md'>
-            <div className='flex items-center justify-between mb-6'>
-              <h3 className='text-xl font-bold text-white flex items-center'>
-                <span className='mr-2'>🚨</span>
-                Generate Community Alert
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-border p-8 rounded-2xl w-full max-w-md shadow-card">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-display font-bold text-white flex items-center">
+                <ShieldAlert className="w-6 h-6 text-danger mr-2" />
+                Generate Alert
               </h3>
-              <button onClick={handleCloseModal} className='text-gray-400 hover:text-white hover:bg-[#111113/30] rounded-full p-2'>
-                ✕
+              <button onClick={handleCloseModal} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className='text-gray-300 mb-6'>
+            <p className="text-gray-400 mb-6 text-sm">
               Review the alert content below before sharing it with your community to help protect others from this scam.
             </p>
 
-            <div className='space-y-4'>
-              <div className='flex items-center space-x-3'>
-                <span className='flex-shrink-0 text-2xl'>🚨</span>
+            <div className="space-y-6 mb-8">
+              <div className="flex items-start space-x-4">
+                <Shield className="w-6 h-6 text-danger mt-1 flex-shrink-0" />
                 <div>
-                  <p className='font-semibold text-white'>Verified Threat</p>
-                  <p className='text-gray-400 text-sm'>
-                    Based on AI analysis and community intelligence
-                  </p>
+                  <p className="font-semibold text-white">Verified Threat</p>
+                  <p className="text-gray-400 text-sm">Based on AI analysis and community intelligence</p>
                 </div>
               </div>
 
-              <div className='flex items-center space-x-3'>
-                <span className='flex-shrink-0 text-2xl'>👥</span>
+              <div className="flex items-start space-x-4">
+                <Users className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
                 <div>
-                  <p className='font-semibold text-white'>Community Protection</p>
-                  <p className='text-gray-400 text-sm'>
-                    Your alert helps protect others in the network
-                  </p>
-                </div>
-              </div>
-
-              <div className='flex items-center space-x-3'>
-                <span className='flex-shrink-0 text-2xl'>⚡</span>
-                <div>
-                  <p className='font-semibold text-white'>Instant Sharing</p>
-                  <p className='text-gray-400 text-sm'>
-                    Share via any app or copy to clipboard
-                  </p>
+                  <p className="font-semibold text-white">Community Protection</p>
+                  <p className="text-gray-400 text-sm">Your alert helps protect others in the network</p>
                 </div>
               </div>
             </div>
 
-            <div className='mt-8 pt-4 border-t border-[#111113/20]'>
-              <button
-                onClick={handleGenerateAlert}
-                className='w-full bg-gradient-to-r from.[22C55E] to.[16a34a] hover:from-[34d399] hover:to-[22c55e] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-              >
-                <span className='mr-2'>✅</span>
-                Generate Alert
-              </button>
-            </div>
+            <Button onClick={handleGenerateAlert} className="w-full h-12 bg-success hover:bg-success/80 text-white border-0">
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Generate Alert
+            </Button>
           </div>
         </div>
       )}
 
       {/* Preview Alert Modal */}
       {showPreviewModal && (
-        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50'>
-          <div className='bg-[#111113/80] backdrop-blur-sm rounded-3xl border border-[#111113/40] p-8 w-full max-w-2xl max-h-[80vh] overflow-y-auto'>
-            <div className='flex items-center justify-between mb-6'>
-              <h3 className='text-xl font-bold text-white flex items-center'>
-                <span className='mr-2'>👁️</span>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-border p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-card">
+            <div className="flex items-center justify-between mb-6 flex-shrink-0">
+              <h3 className="text-xl font-display font-bold text-white flex items-center">
+                <Eye className="w-6 h-6 text-primary mr-2" />
                 Alert Preview
               </h3>
-              <button onClick={handleCloseModal} className='text-gray-400 hover:text-white hover:bg-[#111113/30] rounded-full p-2'>
-                ✕
+              <button onClick={handleCloseModal} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className='bg-[#111113/40] rounded-xl p-4 mb-6'>
-              <pre className='text-sm text-gray-200 whitespace-pre-wrap'>{alertContent}</pre>
+            <div className="bg-background/50 border border-border/50 rounded-xl p-4 mb-6 overflow-y-auto flex-1 font-mono text-sm text-gray-300">
+              <pre className="whitespace-pre-wrap">{alertContent}</pre>
             </div>
 
-            <div className='space-y-3'>
-              <button
-                onClick={handleCopyAlert}
-                className={`w-full bg-gradient-to-r from.[10b981] to.[059669] hover:from-[34d399] hover:to-[10b981] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isSharing ? 'opacity-50 cursor-wait' : ''}`}
-                disabled={isSharing}
-              >
-                <span className='mr-2'>📋</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-shrink-0">
+              <Button onClick={handleCopyAlert} disabled={isSharing} className="w-full">
+                <Copy className="w-4 h-4 mr-2" />
                 {isSharing ? 'Sharing...' : 'Copy Alert'}
-              </button>
-
-              <button
-                onClick={handleShareAlert}
-                className={`w-full bg-gradient-to-r from.[6366F1] to.[8B5CF6] hover:from-[7C3AED] hover:to-[A78BFA] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isSharing ? 'opacity-50 cursor-wait' : ''}`}
-                disabled={isSharing}
-              >
-                <span className='mr-2'>📤</span>
+              </Button>
+              <Button onClick={handleShareAlert} disabled={isSharing} className="w-full">
+                <Share2 className="w-4 h-4 mr-2" />
                 {isSharing ? 'Sharing...' : 'Share Alert'}
-              </button>
-
-              <button
-                onClick={handleDownloadAlert}
-                className={`w-full bg-gradient-to-r from.[8B5CF6] to.[6366F1] hover:from-[A78BFA] hover:to-[7C3AED] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
-              >
-                <span className='mr-2'>💾</span>
+              </Button>
+              <Button onClick={handleDownloadAlert} className="w-full">
+                <Download className="w-4 h-4 mr-2" />
                 Download Alert
-              </button>
-            </div>
-
-            <div className='mt-6 pt-4 border-t border-[#111113/20] text-sm text-gray-400'>
-              <p>Share this alert via social media, messaging apps, or email to warn others in your network.</p>
+              </Button>
             </div>
           </div>
         </div>
@@ -292,53 +249,39 @@ Stay vigilant and report suspicious activity.
 
       {/* Confirmation Modal */}
       {showConfirmationModal && (
-        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50'>
-          <div className='bg-[#111113/80] backdrop-blur-sm rounded-3xl border border-[#111113/40] p-8 text-center max-w-md'>
-            <div className='space-y-6'>
-              <div className='flex items-center justify-center mb-4'>
-                <span className='text-4xl text-[#22C55E]'>✅</span>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-border p-8 rounded-2xl w-full max-w-md text-center shadow-card">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-success" />
               </div>
-              <h3 className='font-bold text-white mb-3'>
-                Community Shield Activated
-              </h3>
-              <p className='text-gray-300'>
-                Your alert has strengthened the Community Threat Intelligence Network.
-              </p>
-              <div className='space-y-4 text-left'>
-                <div className='flex items-center'>
-                  <span className='mr-3'>🏷️</span>
-                  <div>
-                    <p className='font-semibold text-sm'>Campaign:</p>
-                    <p className='text-white'>${result.community_intelligence?.threat_id || 'SMR-' + Date.now().toString(36).toUpperCase()}</p>
-                  </div>
-                </div>
-                <div className='flex items-center'>
-                  <span className='mr-3'>👥</span>
-                  <div>
-                    <p className='font-semibold text-sm'>Community Reports:</p>
-                    <p className='text-white'>${result.community_intelligence?.report_count || 0}+</p>
-                  </div>
-                </div>
-                <div className='flex items-center'>
-                  <span className='mr-3'>📊</span>
-                  <div>
-                    <p className='font-semibold text-sm'>Status:</p>
-                    <p className='text-white'>ACTIVE</p>
-                    <p className='text-gray-400 text-sm'>Threat intelligence updated</p>
-                  </div>
-                </div>
-              </div>
-              <p className='text-gray-300 mt-4'>
-                Thank you for helping protect others.
-              </p>
-              <button
-                onClick={handleCloseModal}
-                className='w-full bg-gradient-to-r from.[22C55E] to.[16a34a] hover:from-[34d399] hover:to-[22c55e] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-              >
-                <span className='mr-2'>✅</span>
-                Close
-              </button>
             </div>
+            
+            <h3 className="text-2xl font-display font-bold text-white mb-2">
+              Shield Activated
+            </h3>
+            <p className="text-gray-400 mb-8 text-sm">
+              Your alert has strengthened the Community Threat Intelligence Network.
+            </p>
+
+            <div className="bg-background/50 border border-border/50 rounded-xl p-4 text-left space-y-4 mb-8">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm flex items-center"><Shield className="w-4 h-4 mr-2" /> Campaign</span>
+                <span className="text-white font-mono text-sm">{result.community_intelligence?.threat_id || 'SMR-' + Date.now().toString(36).toUpperCase()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm flex items-center"><Users className="w-4 h-4 mr-2" /> Reports</span>
+                <span className="text-white font-mono text-sm">{result.community_intelligence?.report_count || 0}+</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm flex items-center"><Activity className="w-4 h-4 mr-2" /> Status</span>
+                <span className="text-success font-mono text-sm font-bold animate-pulse">ACTIVE</span>
+              </div>
+            </div>
+
+            <Button onClick={handleCloseModal} className="w-full bg-success hover:bg-success/80 text-white border-0 h-12">
+              Dismiss
+            </Button>
           </div>
         </div>
       )}
