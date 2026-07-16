@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ThreatSignalCard from './ThreatSignalCard';
+import { useAnalysis } from '../../context/AnalysisContext';
 
-const DetectedThreatsSection = ({ result }) => {
+const DetectedThreatsSection = () => {
+  const { analysisResult: result } = useAnalysis();
+
+  if (!result) return null;
+
   const riskFactors = result.risk_factors || [];
   const category = result.category || 'Unknown';
 
   // Convert risk factors to threat objects for display
   // In a real implementation with future backend endpoints,
-  # this would come from GET /community/threats or similar
+  // this would come from GET /community/threats or similar
   const threats = riskFactors.map((factor, index) => {
     // Map common risk factors to appropriate threat types and severities
     const threatMap = {

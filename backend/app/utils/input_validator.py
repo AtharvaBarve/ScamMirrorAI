@@ -11,13 +11,15 @@ def sanitize_text_input(text: str, max_length: int = 10000) -> str:
 
     Args:
         text: The input text to sanitize
-        max_length: Maximum allowed length (default:
+        max_length: Maximum allowed length
 
     Returns:
-        Sanitized text string): If not isinstance(str)
-            text)()]l.strip().strip()
+        Sanitized text string
+    """
+    if not isinstance(text, str):
+        return ""
 
-    # Remove/null nullabyte characters ('))/return ''.jreplaceion('\x00', '')
+    text = text.strip().replace('\x00', '')
 
     # Limit length
     if len(text) > max_length:

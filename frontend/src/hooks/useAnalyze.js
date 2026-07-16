@@ -1,21 +1,27 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useAnalysis } from '../context/AnalysisContext';
 
 /**
  * Hook to send analysis request to backend.
  * Returns { data, loading, error, execute }
+ * Also updates the global AnalysisContext
  */
 const useAnalyze = () => {
+  const { setAnalysis, setIsLoading } = useAnalysis();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const execute = async (payload) => {
-    setLoading(true);
     setError(null);
+    setLoading(true);
+    setIsLoading(true);
     try {
       const response = await axios.post('/api/v1/analyze', payload);
+      // Update both local state and global context
       setData(response.data);
+      setAnalysis(response.data);
       return response.data;
     } catch (err) {
       // Axios error
@@ -33,9 +39,13 @@ const useAnalyze = () => {
         // Other error
         setError(err.message);
       }
+      // Set local state to null on error
+      setData(null);
+      setAnalysis(null);
       return null;
     } finally {
       setLoading(false);
+      setIsLoading(false);
     }
   };
 

@@ -4,7 +4,7 @@ AI-powered scam detection tool built for the ET AI Hackathon.
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + Tailwind CSS + React Router + Axios
+- **Frontend**: React + Vite + Tailwind CSS + React Router + Axios + date-fns
 - **Backend**: FastAPI + SQLAlchemy (SQLite) + Pydantic
 - **AI**: NVIDIA NIM (or Anthropic Claude via API) – 0‑shot scam detection via prompt engineering
 - **Other**: HTTPX for URL fetching, BeautifulSoup4 for text extraction, CacheTools for simple in‑memory caching
@@ -14,8 +14,16 @@ AI-powered scam detection tool built for the ET AI Hackathon.
 - ✅ Analyze free‑form text messages for scam likelihood
 - ✅ Analyze a URL by fetching its visible text and running the same detection
 - ✅ Returns verdict (`Likely Scam`, `Likely Safe`, `Uncertain`), explanation, and confidence score
-- ✅ Basic history (in‑memory cache) to avoid duplicate API calls during demo
-- ✅ Responsive UI with copy‑to‑clipboard result
+- ✅ Enhanced threat intelligence dashboard with:
+  - Threat Level visualization (confidence gauge)
+  - Detailed explanation of reasoning
+  - Detected threat signals (risk factors)
+  - Community Threat Intelligence (tracking similar threats)
+  - Protect Others (anonymous reporting and sharing)
+  - Threat Report generation (copy/download)
+- ✅ Context-based state management for efficient prop passing
+- ✅ Responsive UI with copy-to-clipboard functionality
+- ✅ Input sanitization and validation for improved security
 
 ## Getting Started
 
@@ -36,7 +44,7 @@ cp .env.example .env   # edit .env if you have a NIM API key
 uvicorn app.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`.  
+The API will be available at `http://localhost:8000`.
 OpenAPI docs: http://localhost:8000/docs
 
 ### Frontend
@@ -77,6 +85,15 @@ A simple `docker-compose.yml` is provided to run both services together.
 docker compose up --build
 ```
 
+## Recent Improvements (July 15, 2026)
+
+- **Context-Based State Management**: Implemented React Context for global state management, eliminating prop drilling and improving performance
+- **Enhanced Threat Intelligence Service**: Created dedicated service layer for threat campaign management
+- **Modular Backend Architecture**: Separated threat intelligence logic into its own service for better maintainability
+- **Improved Date Handling**: Integrated date-fns for consistent date formatting and manipulation
+- **Cleaner Component Structure**: All dashboard components now consume context directly
+- **Retained Backward Compatibility**: Existing hooks and APIs continue to work as expected
+
 ## Project Structure
 
 ```
@@ -85,25 +102,26 @@ scam-mirror-ai/
 │  ├─ app/
 │  │  ├─ main.py
 │  │  ├─ core/          # config, database, security
-│  │  ├─ models/        # SQLAlchemy models
+│  │  ├─ models/        # SQLAlchemy models (AnalysisHistory, ThreatCampaign)
 │  │  ├─ routers/       # API versioning
 │  │  ├─ schemas/       # Pydantic models
-│  │  └─ services/      # Claude (NIM), URL fetch, cache
+│  │  ├─ services/      # Claude (NIM), URL fetch, cache, threat intelligence
+│  │  └─ models/        # Added ThreatCampaign model
 │  ├─ alembic/          # migrations (future)
 │  ├─ requirements.txt
 │  └─ .env.example
 ├─ frontend/
 │  ├─ public/
 │  ├─ src/
-│  │  ├─ components/   # UI components (Analyzer, ResultCard, Spinner, Layout)
-│  │  ├─ hooks/        # custom React hooks
+│  │  ├─ components/   # UI components
+│  │  ├─ context/      # NEW: React Context for state management
+│  │  ├─ hooks/        # custom React hooks (updated to use context)
 │  │  ├─ routes/       # React Router v6 routes
-│  │  ├─ utils/        # constants
-│  │  ├─ App.jsx
+│  │  ├─ App.jsx       # Wrapped with AnalysisProvider
 │  │  ├─ main.jsx
 │  │  └─ index.css
 │  ├─ index.html
-│  ├─ package.json
+│  ├─ package.json     # Added date-fns dependency
 │  ├─ vite.config.js
 │  └─ .env.example
 └─ README.md
@@ -118,4 +136,4 @@ scam-mirror-ai/
 
 ## License
 
-MIT – feel free to fork and adapt for your own hackathon projects.# ScamMirrorAI
+MIT – feel free to fork and adapt for your own hackathon projects.

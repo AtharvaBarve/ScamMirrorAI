@@ -1,5 +1,6 @@
-import React from 'react';
-import SkeletonLoader from '../../SkeletonLoader';
+import React, { useContext } from 'react';
+import { useAnalysis } from '../../context/AnalysisContext';
+import SkeletonLoader from '../SkeletonLoader';
 import ThreatLevelSection from './ThreatLevelSection';
 import ExplanationSection from './ExplanationSection';
 import DetectedThreatsSection from './DetectedThreatsSection';
@@ -7,7 +8,9 @@ import CommunityIntelligenceSection from './CommunityIntelligenceSection';
 import ProtectOthersSection from './ProtectOthersSection';
 import ThreatReportSection from './ThreatReportSection';
 
-const ThreatAssessmentDashboard = ({ result, loading = false }) => {
+const ThreatAssessmentDashboard = () => {
+  const { analysisResult: result, loading } = useAnalysis();
+
   if (loading && !result) {
     // Show skeleton loaders when loading and no result yet
     return (

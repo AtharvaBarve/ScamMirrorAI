@@ -1,24 +1,46 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useAnalysis } from '../../context/AnalysisContext';
 
-const CommunityIntelligenceSection = ({ result }) => {
-  // Mock data for demonstration - would come from backend in real implementation
-  const threatFamily = result.category || 'Financial Scam';
-  const reportedCount = Math.floor(Math.random() * 1247) + 850; // Mock data
-  const trend = Math.random() > 0.5 ? 'up' : 'down';
-  const trendPercent = Math.floor(Math.random() * 15) + 2;
-  const firstSeen = '2024-03-15';
-  const lastSeen = new Date().toISOString().split('T')[0];
+const CommunityIntelligenceSection = () => {
+  const { analysisResult } = useAnalysis();
 
-  // Determine threat campaign status based on trend and severity
-  const getThreatStatus = () => {
-    if (trend === 'up' && trendPercent > 20) return { text: 'RAPIDLY GROWING', color: '#FF4D6D' };
-    if (trend === 'up' && trendPercent > 10) return { text: 'GROWING', color: '#FFB703' };
-    if (trend === 'down' && trendPercent > 15) return { text: 'DECLINING', color: '#22C55E' };
-    if (trend === 'up') return { text: 'STEADY GROWTH', color: '#FFB703' };
-    return { text: 'STABLE', color: '#22C55E' };
+  // Extract community intelligence data if available
+  const communityIntelligence = analysisResult?.community_intelligence || {};
+
+  // Fallback to category if no community intelligence
+  const threatFamily = communityIntelligence.threat_family || analysisResult?.category || 'Unknown';
+
+  // Format dates if available
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      // Handle ISO string from backend
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) {
+      return dateString;
+    }
   };
 
-  const threatStatus = getThreatStatus();
+  // Calculate time ago from first seen
+  const getTimeAgo = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 12)} months ago`;
+      return `${Math.floor(diffDays / 365)} years ago`;
+    } catch (e) {
+      return 'N/A';
+    }
+  };
 
   return (
     <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
@@ -34,35 +56,28 @@ const CommunityIntelligenceSection = ({ result }) => {
         </div>
 
         <div className='flex items-center justify-between text-gray-300'>
-          <span>Reported Cases</span>
-          <span className='font-semibold text-white'>{reportedCount.toLocaleString()}+</span>
+          <span>Total Reports</span>
+          <span className='font-semibold text-white'>{communityIntelligence.report_count ? communityIntelligence.report_count.toLocaleString() : '0'}</span>
         </div>
 
         <div className='flex items-center justify-between text-gray-300'>
-          <span>Trend (30d)</span>
-          <span className={`font-semibold text-white flex items-center space-x-1`}>
-            {trend === 'up' ? '📈' : '📉'}
-            {trend === 'up' ? `+${trendPercent}%` : `-${trendPercent}%`}
-          </span>
+          <span>Days Active</span>
+          <span className='font-semibold text-white'>{communityIntelligence.first_seen ? getTimeAgo(communityIntelligence.first_seen) : 'N/A'}</span>
         </div>
 
         <div className='flex items-center justify-between text-gray-300 text-sm'>
           <span>First Seen</span>
-          <span>{firstSeen}</span>
+          <span>{communityIntelligence.first_seen ? formatDate(communityIntelligence.first_seen) : 'N/A'}</span>
         </div>
 
         <div className='flex items-center justify-between text-gray-300 text-sm'>
           <span>Last Seen</span>
-          <span>{lastSeen}</span>
+          <span>{communityIntelligence.last_seen ? formatDate(communityIntelligence.last_seen) : 'N/A'}</span>
         </div>
 
         <div className='flex items-center justify-between text-gray-300'>
-          <span>Threat Campaign Status</span>
-          <span className={`font-semibold text-white flex items-center space-x-1`}>
-            <span className={`text-[${threatStatus.color}]`}>
-              {threatStatus.text}
-            </span>
-          </span>
+          <span>Threat ID</span>
+          <span className='font-semibold text-white'>{communityIntelligence.threat_id || 'N/A'}</span>
         </div>
       </div>
 

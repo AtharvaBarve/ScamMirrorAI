@@ -9,6 +9,7 @@ from app.models.analysis import AnalysisHistory
 from app.services.hybrid_service import hybrid_service
 from app.services.url_service import fetch_text
 from app.utils.input_validator import validate_and_sanitize_text
+from app.services.threat_intelligence_service import ThreatIntelligenceService
 
 router = APIRouter()
 
@@ -96,6 +97,16 @@ async def analyze(
         original_url=original_url,
     )
 
+    # Process threat campaign if category is present
+    threat_campaign_id = None
+    community_intelligence_data = None
+    if result_dict.get("category"):
+        # Use threat intelligence service to handle campaign logic
+        threat_service = ThreatIntelligenceService(db)
+        campaign = threat_service.get_or_create_campaign(result_dict["category"])
+        threat_campaign_id = campaign.id
+        community_intelligence_data = threat_service.get_campaign_intelligence(campaign)
+
     # Persist to DB
     db_obj = AnalysisHistory(
         input_type=input_type,
@@ -107,10 +118,15 @@ async def analyze(
         risk_factors=json.dumps(result_dict["risk_factors"]),
         recommended_actions=json.dumps(result_dict["recommended_actions"]),
         processing_time=result_dict["processing_time"],
+        threat_campaign_id=threat_campaign_id,
     )
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
+
+    # Add community intelligence to the result dict if we have a campaign
+    if community_intelligence_data:
+        result_dict["community_intelligence"] = community_intelligence_data
 
     # Cache the result (store as dict)
     set(cache_key, result_dict)

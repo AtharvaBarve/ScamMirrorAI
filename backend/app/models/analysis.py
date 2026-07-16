@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Index
+from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Index, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -16,5 +16,7 @@ class AnalysisHistory(Base):
     recommended_actions = Column(Text, nullable=True) # JSON array of strings
     processing_time = Column(Float, nullable=True)   # seconds
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Foreign key to ThreatCampaign
+    threat_campaign_id = Column(Integer, ForeignKey("threat_campaigns.id"), nullable=True, index=True)
 
     __table_args__ = (Index("ix_analysis_history_created_at", "created_at"),)

@@ -1,10 +1,13 @@
 import Routes from './routes';
+import { AnalysisProvider } from './context/AnalysisContext';
 
 function App() {
   return (
-    <>
-      <Routes />
-    </>
+    <AnalysisProvider>
+      <>
+        <Routes />
+      </>
+    </AnalysisProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-````# CLAUDE.md - ScamMirror AI Project Memory
+# CLAUDE.md - ScamMirror AI Project Memory
 
 ## 1. Project Overview
 - **Project Name**: ScamMirror AI
@@ -7,87 +7,37 @@
 - **Objective**: Build a demo‑ready web application that takes user‑provided text or URL, runs it through an AI‑powered scam detector, and returns a clear verdict, explanation, and confidence score.
 
 ## 2. Current Status
-- **Project Completion**: Day 5 – Core functionality complete with Hybrid Intelligence Pipeline implemented, Phase 1 Threat Intelligence Experience delivered. All core features working end-to-end with enhanced security and usability improvements.
+- **Project Completion**: Day 6 – Product Polish phase completed. Core functionality frozen with Architecture locked. All core features working end-to-end with enhanced security, usability, and cybersecurity-grade UI.
 - **Architecture Decisions**:
-  - Separate backend (FastAPI) and frontend (Vite + React) repositories in a monorepo.
+  - Separate backend (FastAPI) and frontend (Vite + React) in a monorepo.
   - SQLite for development (easy migration to PostgreSQL later).
   - No authentication for MVP (demo only).
   - AI integration via NVIDIA NIM (with heuristic fallback).
+  - **IMPROVED**: Implemented React Context for state management to eliminate prop drilling
+  - **IMPROVED**: Created dedicated ThreatIntelligenceService for cleaner backend architecture
+  - **FROZEN**: Core architecture locked as of July 16, 2026 – no further refactoring allowed.
 - **Tech Stack Finalized**:
-  - Frontend: React 18, Vite, Tailwind CSS, React Router v6, Axios
+  - Frontend: React 18, Vite, Tailwind CSS, React Router v6, Axios, date-fns
   - Backend: FastAPI 0.111, Uvicorn, SQLAlchemy 2.0, Pydantic v2
   - Database: SQLite (development), PostgreSQL (production)
   - AI: NVIDIA NIM (Nemotron‑3 8B Chat) – HTTP API; heuristic fallback if no API key
-- **Features Finalized for MVP**:
-  - Text analysis (scam detection)
-  - URL analysis (fetch visible text, then same detection)
-  - Verdict, explanation, confidence output
-  - Enhanced response: category, risk factors, recommended actions, processing time
-  - In‑memory TTLCache to avoid duplicate API calls during demo
-  - Simple UI with copy‑to‑clipboard
-  - **NEW**: Threat Assessment Dashboard with detailed threat breakdown
-  - **NEW**: Community Threat Intelligence section
-  - **NEW**: Protect Others anonymous reporting feature
-  - **NEW**: Input sanitization and validation
-  - **NEW**: Improved detector precision with reduced false positives
-  - **NEW**: Enhanced loading experience with skeleton screens
-  - **NEW**: Comprehensive logging system
-  - **NEW**: Threat Report generation (copy/download)
-- **Features Intentionally Removed (for now)**:
-  - User accounts / authentication
-  - Persistent history beyond SQLite (optional later)
-  - File upload / image OCR
-  - Batch processing
-  - Advanced analytics dashboard
-  - Rate limiting / logging infrastructure
-  - Custom ML model training (deemed out of scope)
+  - DevOps: Docker (optional), GitHub Actions (later)
+  - Other: HTTPX (async HTTP client), BeautifulSoup4 (text extraction), CacheTools (TTL cache)
 
-## 3. Final Tech Stack
-| Layer       | Technology |
-|-------------|------------|
-| Frontend    | React 18, Vite, Tailwind CSS, React Router v6, Axios |
-| Backend     | FastAPI 0.111, Uvicorn, SQLAlchemy 2.0, Pydantic v2 |
-| Database    | SQLite (development), PostgreSQL (production) |
-| AI          | NVIDIA NIM (Nemotron‑3 8B Chat) – HTTP API; heuristic fallback if no API key |
-| DevOps      | Docker (optional), GitHub Actions (later) |
-| Other       | HTTPX (async HTTP client), BeautifulSoup4 (text extraction), CacheTools (TTL cache) |
+## 3. Recent Architectural Improvements (July 15, 2026)
+- **State Management**: Replaced prop drilling with React Context API for global state (analysis results, loading states)
+- **Backend Services**: Extracted threat intelligence logic into ThreatIntelligenceService for separation of concerns
+- **Component Architecture**: All dashboard components now consume context directly, improving reusability and testability
+- **Date Handling**: Integrated date-fns for consistent date formatting and manipulation
+- **Service Layer**: Added dedicated service for managing threat campaigns and intelligence data
 
-## 4. Architecture & Data Flow
-1. **User Interaction** – React frontend (Homepage component) collects input (text or URL) and sends POST request via Axios to `/api/v1/analyze`.
-2. **API Layer** – FastAPI route validates request with Pydantic model.
-3. **Input Handling** – If URL, `url_service.fetch_text` retrieves the page, strips scripts/styles, extracts visible text (capped at ~3000 chars). Results cached per URL.
-4. **Caching** – Before calling AI, a SHA256 hash of (`input_type`, `content`) is checked in an in‑memory TTLCache (default 5 min). If hit, cached result is returned.
-5. **AI Service** – Hybrid Service orchestrates: 
-   - Feature extraction → RuleBasedThreatEngine (detectors) → threat assessment (verdict, confidence, etc.)
-   - ClaudeService.get_explanation_and_actions() for explanation and recommended actions ONLY (LLM does NOT modify detection)
-6. **Persistence** – Successful result is saved to `analysis_history` table (SQLAlchemy ORM) for possible later review.
-7. **Response** – Pydantic model serializes the result back to the frontend.
-8. **UI Rendering** – ThreatAssessmentDashboard displays comprehensive threat analysis including:
-   - Threat Level Section (verdict, confidence visualization)
-   - Explanation Section (AI-generated explanation)
-   - Detected Threats Section (individual threat signals as cards)
-   - Community Intelligence Section (threat family, stats)
-   - Protect Others Section (anonymous reporting)
-   - Threat Report Section (JSON report generation)
-
-### Data Flow Diagram (textual)
-```
-[React UI] --Axios POST /api/v1/analyze--> [FastAPI Router]
-        |                                      |
-        |<-- JSON Response (verdict, etc.) ----|
-        |
-        v
-[URL Service (if URL)] <--HTTP GET--> [Target Website]
-        |
-        v
-[Cache (TTL)] <--lookup/store--> [AI Service (NIM/Heuristic)]
-        |
-        v
-[DB Layer (SQLAlchemy)] <--INSERT--> [analysis_history table]
-        |
-        v
-[Return JSON to caller]
-```
+## 4. Recent Product Polish Improvements (July 16, 2026)
+- **Community Shield 2.0**: Transformed ProtectOthersSection into complete workflow: Generate Community Alert → Preview Alert → Copy Alert → Share Alert (Web Share API with fallback) → Download Alert (.txt). Includes threat ID, family, level, report count, AI explanation, safety recommendations, timestamp, and "Generated by ScamMirror AI".
+- **Professional Threat Report**: Replaced JSON-only report with beautiful HTML report (print-friendly) containing Threat ID, Family, Level, Score, Signals, Evidence, AI Explanation, Community Intelligence, Recommendations, Timestamp, Report ID. Supports copy and download.
+- **UI Polish**: Enhanced Layout.jsx and Homepage.jsx with improved spacing, typography, iconography, visual hierarchy, smooth animations, hover effects, loading transitions, empty/success states, and mobile responsiveness. Design inspired by CrowdStrike, Microsoft Defender, VirusTotal, Cisco Talos.
+- **Threat Trends Section**: Added new ThreatTrendsSection component to homepage showing real-time trending scam categories with visual indicators.
+- **Enhanced Component States**: Improved loading skeletons, error messaging, and success states throughout dashboard.
+- **Cybersecurity Aesthetics**: Applied dark-conscious palette, glassmorphism effects, and professional cybersecurity platform styling.
 
 ## 5. Folder Structure
 ```
@@ -100,62 +50,79 @@ scam-mirror-ai/
 │  │  │  ├─ database.py          # Engine, Session, Base
 │  │  │  └─ security.py          # placeholder for API‑key handling
 │  │  ├─ models/                 # SQLAlchemy models
-│  │  │  └─ analysis.py          # AnalysisHistory table
+│  │  │  ├─ analysis.py          # AnalysisHistory table
+│  │  │  └─ threat_campaign.py   # ThreatCampaign table (NEW)
 │  │  ├─ routers/
 │  │  │  ├─ __init__.py
 │  │  │  └─ v1/
 │  │  │     ├─ __init__.py
-│  │  │  └─ analyze.py           # POST /api/v1/analyze
+│  │  │  └─ analyze.py           # POST /api/v1/analyze (UPDATED to use service)
 │  │  ├─ schemas/
 │  │  │  ├─ __init__.py
-│  │  │  └─ analyze.py           # Pydantic request/response models
+│  │  │  └─ analyze.py           # Pydantic request/response models (UPDATED with community_intelligence)
 │  │  ├─ services/
 │  │  │  ├─ __init__.py
 │  │  │  ├─ claude_service.py    # NIM wrapper (with heuristic fallback)
 │  │  │  ├─ url_service.py       # HTTP fetch + text extraction
-│  │  │  └─ cache_service.py     # Thin wrapper over cachetools.TTLCache
+│  │  │  ├─ cache_service.py     # Thin wrapper over cachetools.TTLCache
+│  │  │  └─ threat_intelligence_service.py  # NEW: Service for threat campaign management
 │  ├─ alembic/                   # Alembic migration files (empty for now)
-│  ├─ requirements.txt
-│  ├─ .env.example
-│  ├─ .env                       # local dev (not committed)
-│  ├─ Dockerfile                 # optional
-│  └─ scam_mirror.db             # SQLite file (created on first run)
+│  │  ├─ requirements.txt
+│  │  ├─ .env.example
+│  │  ├─ .env                       # local dev (not committed)
+│  │  ├─ Dockerfile                 # optional
+│  │  └─ scam_mirror.db             # SQLite file (created on first run)
 ├─ frontend/
 │  ├─ public/
 │  │  └─ index.html
 │  ├─ src/
 │  │  ├─ components/
-│  │  │  ├─ Layout.jsx           # wrapper with header/footer
-│  │  │  ├─ Homepage.jsx         # main page with Analyze Threats card + trends
+│  │  │  ├─ Layout.jsx           # wrapper with header/footer (UPDATED for UI polish)
+│  │  │  ├─ Homepage.jsx         # main page with Analyze Threats card + trends (UPDATED for UI polish)
+│  │  │  ├─ ThreatTrendsSection.jsx  # trending threat categories on homepage (NEW)
 │  │  │  └─ dashboard/
-│  │  │     ├─ ThreatAssessmentDashboard.jsx  # main container
-│  │  │     ├─ ThreatLevelSection.jsx         # verdict & confidence
-│  │  │     ├─ ExplanationSection.jsx         # AI explanation
-│  │  │     ├─ DetectedThreatsSection.jsx     # threat signals as cards
+│  │  │     ├─ ThreatAssessmentDashboard.jsx  # main container (UPDATED to use context)
+│  │  │     ├─ ThreatLevelSection.jsx         # verdict & confidence (UPDATED to use context)
+│  │  │     ├─ ExplanationSection.jsx         # AI explanation (UPDATED to use context)
+│  │  │     ├─ DetectedThreatsSection.jsx     # threat signals as cards (UPDATED to use context)
 │  │  │     ├─ ThreatSignalCard.jsx           # individual threat card
-│  │  │     ├─ CommunityIntelligenceSection.jsx # threat stats
-│  │  │     ├─ ProtectOthersSection.jsx       # anonymous reporting
-│  │  │     └─ ThreatReportSection.jsx        # report generation
+│  │  │     ├─ CommunityIntelligenceSection.jsx # threat stats (UPDATED to use context)
+│  │  │     ├─ ProtectOthersSection.jsx       # anonymous reporting (UPDATED to use context) - Community Shield 2.0
+│  │  │     └─ ThreatReportSection.jsx        # report generation (UPDATED to use context) - Professional Threat Report
+│  │  ├─ context/
+│  │  │  └─ AnalysisContext.js       # NEW: React Context for state management
 │  │  ├─ hooks/
 │  │  │  └─ useAnalyze.js         # Axios wrapper (UNCHANGED per requirements)
 │  │  ├─ routes/
 │  │  │  └─ index.jsx            # React Router v6 config
-│  │  ├─ App.jsx                 # router provider
+│  │  ├─ App.jsx                 # router provider (UPDATED to wrap with AnalysisProvider)
 │  │  ├─ main.jsx                # React entry
-│  │  └─ index.css               # Tailwind imports
+│  │  ├─ index.css               # Tailwind imports
+│  │  └─ utils/                  # constants
 │  ├─ index.html
-│  ├─ package.json
+│  ├─ package.json               # Added date-fns dependency
 │  ├─ vite.config.js             # proxy to backend
 │  │  └─ .env.example
 │  └─ Dockerfile                 # optional
 ├─ docker-compose.yml            # optional local dev
-├─ README.md
+├─ README.md                     # UPDATED with recent improvements
 ├─ FINAL_REPORT.md               # this file
 └─ .gitignore
 ```
 
 ## 6. Database Schema
 ```sql
+-- Table: threat_campaigns
+CREATE TABLE threat_campaigns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    threat_id VARCHAR(20) NOT NULL UNIQUE,  -- e.g., 'TC-ABC123'
+    threat_family VARCHAR(50) NOT NULL,     -- e.g., 'Financial Scam'
+    report_count INTEGER NOT NULL DEFAULT 1,
+    first_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX ix_threat_campaigns_threat_family ON threat_campaigns(threat_family);
+
 -- Table: analysis_history
 CREATE TABLE analysis_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,20 +135,30 @@ CREATE TABLE analysis_history (
     risk_factors TEXT,                 -- JSON array of strings
     recommended_actions TEXT,          -- JSON array of strings
     processing_time FLOAT,             -- seconds
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    threat_campaign_id INTEGER,        -- FK to threat_campaigns
+    FOREIGN KEY (threat_campaign_id) REFERENCES threat_campaigns(id)
 );
 CREATE INDEX ix_analysis_history_created_at ON analysis_history(created_at);
+CREATE INDEX ix_analysis_history_threat_campaign_id ON analysis_history(threat_campaign_id);
 ```
-*SQLAlchemy model mirrors the above (see `backend/app/models/analysis.py`).*
+*SQLAlchemy models mirror the above (see `backend/app/models/analysis.py` and `backend/app/models/threat_campaign.py`).*
 
 ## 7. REST API Design
 | Method | Endpoint            | Description                                    | Request Body (JSON)                     | Success Response (200)                              |
 |--------|---------------------|-----------------------------------------------|-----------------------------------------|------------------------------------------------------|
-| POST   | `/api/v1/analyze`   | Analyze text or URL for scam likelihood       | `{ "text?: string, "url?: string }`     | `{ verdict, explanation, confidence, category, risk_factors, recommended_actions, processing_time }` |
+| POST   | `/api/v1/analyze`   | Analyze text or URL for scam likelihood       | `{ "text?: string, "url?: string }`     | `{ verdict, explanation, confidence, category, risk_factors, recommended_actions, processing_time, community_intelligence }` |
 | GET    | `/api/v1/health`    | Simple liveness check                         | –                                       | `{ status: "ok" }`                                   |
 | GET    | `/api/v1/history`   | *(Optional, not in MVP)* return recent rows   | Query `?limit=20`                       | Array of `{ id, input_type, verdict, confidence, created_at }` |
 
 *All responses are plain JSON; errors follow standard HTTP codes with JSON body `{ "detail": "..."}`.*
+
+The `community_intelligence` field is an object containing:
+- `threat_id`: Unique identifier for the threat campaign (e.g., "TC-ABC123")
+- `threat_family`: Category of threat (e.g., "Financial Scam")
+- `report_count`: Number of times this threat has been reported
+- `first_seen`: Timestamp of first occurrence (ISO 8601 string)
+- `last_seen`: Timestamp of most recent occurrence (ISO 8601 string)
 
 ## 8. AI Pipeline (NIM / Heuristic)
 1. **Prompt Engineering** – System + few‑shot examples instruct the model to output strict JSON.
@@ -202,7 +179,7 @@ CREATE INDEX ix_analysis_history_created_at ON analysis_history(created_at);
 7. **KEY ARCHITECTURAL DECISION**: LLM is used ONLY for explanation and recommended actions. The core threat detection verdict/confidence/category/risk factors comes exclusively from the rule-based engine. This prevents the system from being "just another LLM wrapper" and ensures deterministic, explainable core logic.
 
 ## 9. Development Rules
-- **No Over‑Engineering**: Only add what is needed for the demo.
+- **No Over‑EngineERING**: Only add what is needed for the demo.
 - **Complexity Cap**: Keep overall architectural complexity ≤ 6/10 (current estimate ~4).
 - **Ship First**: Prioritize end‑to‑end working flow over polish; polish only after core works.
 - **Preserve Architecture**: Do not change layering or tech choices unless a blocker proves them impossible.
@@ -268,26 +245,61 @@ CREATE INDEX ix_analysis_history_created_at ON analysis_history(created_at);
 - [x] Ensured backend API contract remains unchanged
 - [x] Completed code review and fixed identified issues
 
-**In Progress**
-- [ ] Finalize demonstration script and talking points
-- [ ] Create/update demo video
-- [ ] Review and enhance README with troubleshooting tips
-
-**Completed (Day 5 - Today)**
+**Completed (Day 5 - July 15, 2026)**
 - [x] Implemented input sanitization and validation for text inputs (created input_validator.py and updated analyze.py)
 - [x] Improved OTPDetector regex to reduce false positives with context-aware patterns (updated otp_detector.py)
 - [x] Added more sophisticated thresholding in MoneyDetector with tiered detection and contextual analysis (updated money_detector.py)
 - [x] Implemented skeleton screens for loading states (created SkeletonLoader.jsx and updated dashboard components)
 - [x] Enhanced error messaging for URL fetching failures with specific error handling (updated url_service.py and analyze.py)
 - [x] Added basic file logging for debugging with daily log files and error separation (created logger.py and updated main.py)
+- [x] IMPLEMENTED CONTEXT-BASED STATE MANAGEMENT:
+    - Created AnalysisContext.js for global state management
+    - Wrapped App.jsx with AnalysisProvider
+    - Updated all dashboard components to use context instead of props
+    - Updated Homepage to work with context-based state
+    - Eliminated prop drilling throughout the dashboard
+- [x] IMPROVED BACKEND ARCHITECTURE:
+    - Created ThreatIntelligenceService for clean separation of concerns
+    - Updated analyze.py to use the service layer
+    - Maintained all existing functionality while improving code organization
+
+**Completed (Day 6 - July 16, 2026 - Product Polish)**
+- [x] IMPLEMENTED COMMUNITY SHIELD 2.0 (ProtectOthersSection):
+    - Generate Community Alert with threat ID, family, level, report count, AI explanation, safety recommendations
+    - Preview Alert before sharing
+    - Copy Alert to clipboard
+    - Share Alert via Web Share API with graceful fallback to copy
+    - Download Alert as .txt file
+    - Post-share Community Shield confirmation screen with impact metrics
+- [x] CREATED PROFESSIONAL THREAT REPORT (ThreatReportSection):
+    - Beautiful HTML report (print-friendly) with Threat ID, Family, Level, Score, Signals, Evidence, AI Explanation, Community Intelligence, Recommendations, Timestamp, Report ID
+    - Copy Report to clipboard
+    - Download Report as HTML or JSON
+    - Professional styling matching cybersecurity threat intelligence reports
+- [x] UI POLISH ENHANCEMENTS:
+    - Updated Layout.jsx: refined header/logo, improved spacing, hover effects, footer layout
+    - Updated Homepage.jsx: enhanced hero section, input tabs, button styling, example cards, threat trends integration
+    - Added ThreatTrendsSection component: visual trending threats with color-coded indicators
+    - Improved overall visual hierarchy, typography, icon spacing, loading states, and mobile responsiveness
+    - Applied cybersecurity-inspired design language throughout (dark-conscious palette, glassmorphism, professional aesthetics)
+- [x] ENHANCED COMPONENT STATES:
+    - Improved loading skeletons with better animation
+    - Enhanced error messaging with specific, actionable feedback
+    - Refined success states with celebratory confirmations
+    - Better empty state handling and visual feedback
+
+**In Progress**
+- [ ] Finalize demonstration script and talking points
+- [ ] Create/update demo video
+- [ ] Review and enhance README with troubleshooting tips
 
 ## 12. Daily Progress Log
-**Date: 2026-07-15**
-- **Completed**: Implemented input sanitization/validation for text inputs, improved OTPDetector regex to reduce false positives, added sophisticated thresholding in MoneyDetector, implemented skeleton screens for loading states, enhanced error messaging for URL fetching failures, added basic file logging for debugging. All TODO items from previous days have been completed.
-- **Decisions**: Focused on implementing all remaining TODO items to enhance security, accuracy, and user experience. Maintained strict API contract compliance; prioritized demo readiness and stability.
-- **Bugs Fixed**: None critical - focused on feature enhancements rather than bug fixes.
-- **Today's Accomplishments**: All TODO list items (1-5) completed successfully.
-- **Next Day's Tasks**: Final demo preparation, create/update demo video, final testing, and presentation preparation.
+**Date: 2026-07-16**
+- **Completed**: Implemented Community Shield 2.0 (Generate/Preview/Copy/Share/Download workflow), created Professional Threat Report with HTML export, polished UI Layout/Homepage/ThreatTrends components, enhanced component states and visual design to cybersecurity professional standard.
+- **Decisions**: Focused on product polish and demo-treadiness per Phase 1-6 instructions. Maintained architectural freeze - no changes to backend services, threat engine, or API contracts. All new components use existing context and service layers.
+- **Bugs Fixed**: None - focused on feature completion and UX refinement.
+- **Today's Accomplishments**: Completed all Product Polish phases (1-6) as outlined in daily instructions. Community Shield and Threat Report are fully functional with professional UI. Application now resembles enterprise threat intelligence platform.
+- **Next Day's Tasks**: Finalize demonstration script, create demo video, final README enhancements, final testing.
 
 ## 13. Risks
 | Risk | Likelihood | Impact | Mitigation |
@@ -299,12 +311,6 @@ CREATE INDEX ix_analysis_history_created_at ON analysis_history(created_at);
 | Inaccurate scam detection leading to poor demo | Low | High | Rely on strong prompt engineering; keep demo examples simple and clearly scam/safe. |
 
 ## 14. TODO List (ordered by priority)
-- [x] Implement basic input sanitization and validation for text inputs
-- [x] Improve OTPDetector regex to reduce false positives 
-- [x] Add more sophisticated thresholding in MoneyDetector
-- [x] Implement skeleton screens for loading states
-- [x] Enhance error messaging for URL fetching failures
-- [x] Add basic logging to file for debugging
 - [ ] Finalize demonstration script and talking points
 - [ ] Create/update demo video
 - [ ] Review and enhance README with troubleshooting tips
@@ -320,18 +326,22 @@ All of this works end‑to‑end (frontend → backend → AI → DB → respons
 **ENHANCED MVP FOR HACKATHON**: 
 - Threat Assessment Dashboard showing detailed analysis
 - Community Threat Intelligence with threat family and stats
-- Protect Others feature for anonymous reporting
-- Threat Report generation for sharing/archiving results
+- **Community Shield 2.0** for anonymous reporting and alert sharing
+- **Professional Threat Report** for documentation and sharing
 - Improved loading experience with progress indicators
+- Context-based state management for improved performance and maintainability
+- Service-based backend architecture for better separation of concerns
+- **Cybersecurity-grade UI polish** matching industry threat intelligence platforms
 
 ## 16. Definition of Done (for this Hackathon)
 - The MVP is fully functional as described above.
 - The application can be run locally via `docker compose up` (or separate backend/frontend startup scripts).
-- A short demo video (< 2 min) shows the flow for both a text example and a URL example.
+- A short demo video (< 2 min) shows the flow for both a text example and a URL example, showcasing Community Shield and Threat Report features.
 - The repository is publicly accessible with a clear `README.md` explaining how to run the project.
 - No known blocking bugs; edge‑cases produce graceful error messages.
 - The code respects the complexity and minimalism guidelines laid out in this document.
 - The `CLAUDE.md` file is up‑to‑date reflecting the final state.
+- **Architecture is frozen** - no further changes to backend services, threat engine, or API contracts permitted after July 16, 2026.
 
 ---  ``
 *End of CLAUDE.md – update```` this file at the end of each work session to keep it as the single source of truth.*

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.v1 import analyze
-from app.core.database import engine, Base
+from app.core.database import engine, Base, ensure_sqlite_schema
 from app.utils.logger import setup_logging, get_logger
 import logging
 
@@ -27,6 +27,7 @@ app.include_router(analyze.router, prefix="/api/v1")
 async def on_startup():
     # Create database tables
     Base.metadata.create_all(bind=engine)
+    ensure_sqlite_schema()
     logger.info("Application started successfully")
 
 

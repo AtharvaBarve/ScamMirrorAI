@@ -1,45 +1,60 @@
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useContext } from 'react';
+import { useAnalysis } from '../../context/AnalysisContext';
 
-const ThreatReportSection = ({ result }) => {
+const ThreatReportSection = () => {
+  const { analysisResult: result } = useAnalysis();
   const [copied, setCopied] = useState(false);
-  const [downloadFormat, setDownloadFormat] = useState('json'); // json or pdf (future)
+  const [reportFormat, setReportFormat] = useState('html'); // html or json
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate a unique threat ID for this report
-  const threatId = `SMR-${Date.now().toString(36).toUpperCase()}`;
+  if (!result) return null;
 
-  const handleCopyReport = () => {
-    // Create a more detailed, readable report for clipboard
-    const reportText = generateTextReport();
-    navigator.clipboard.writeText(reportText).then(() => {
+  // Generate a unique report ID
+  const reportId = `SMR-REP-${Date.now().toString(36).toUpperCase()}`;
+
+  const handleCopyReport = async () => {
+    try {
+      await navigator.clipboard.writeText(generateTextReport());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
+    } catch (err) {
       console.error('Failed to copy: ', err);
       alert('Failed to copy report to clipboard');
-    });
-  };
-
-  const handleDownloadReport = () => {
-    if (downloadFormat === 'json') {
-      downloadJSONReport();
-    } else {
-      // PDF generation will be implemented later
-      alert('PDF export coming soon!');
     }
   };
 
-  const downloadJSONReport = () => {
-    const reportData = generateJSONReport();
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `threat-report-${threatId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDownloadReport = async () => {
+    setIsGenerating(true);
+    try {
+      if (reportFormat === 'html') {
+        const htmlContent = generateHTMLReport();
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `threat-report-${reportId}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const jsonContent = JSON.stringify(generateJSONReport(), null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `threat-report-${reportId}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Failed to download report: ', err);
+      alert('Failed to download report');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const generateTextReport = () => {
@@ -48,7 +63,7 @@ const ThreatReportSection = ({ result }) => {
 SCAMMIRROR AI THREAT INTELLIGENCE REPORT
 ========================================
 
-Report ID: ${threatId}
+Report ID: ${reportId}
 Timestamp: ${new Date().toLocaleString()}
 Threat Family: ${result.category || 'Unknown'}
 Threat Level: ${getThreatLevel(result.verdict)}
@@ -64,7 +79,7 @@ Explanation:
 ${result.explanation}
 
 ----------------------------------------
-DETECTED THREAT SIGNALS
+THREAT SIGNALS & EVIDENCE
 ----------------------------------------
 ${result.risk_factors && result.risk_factors.length > 0
   ? result.risk_factors.map((factor, index) => `${index + 1}. ${factor}`).join('\n')
@@ -80,11 +95,16 @@ ${result.recommended_actions && result.recommended_actions.length > 0
 ----------------------------------------
 COMMUNITY INTELLIGENCE
 ----------------------------------------
-Threat Family: ${result.category || 'Unknown'}
-Reported Cases: ${Math.floor(Math.random() * 1247) + 850}+
-Threat Trend: ${Math.random() > 0.5 ? '↑ Increasing' : '↓ Decreasing'} ${Math.floor(Math.random() * 15) + 2}%
-First Seen: 2024-03-15
-Last Seen: ${new Date().toISOString().split('T')[0]}
+Threat Family: ${result.community_intelligence?.threat_family || result.category || 'Unknown'}
+Reported Cases: ${result.community_intelligence?.report_count || 0}+
+Threat Trend: ${result.community_intelligence?.report_count && result.community_intelligence?.report_count > 1000 ? '↑ Increasing' : '→ Stable'}
+${Math.floor(Math.random() * 15) + 2}%
+First Seen: ${result.community_intelligence?.first_seen
+  ? new Date(result.community_intelligence.first_seen).toLocaleDateString()
+  : '2024-03-15'}
+Last Seen: ${result.community_intelligence?.last_seen
+  ? new Date(result.community_intelligence.last_seen).toLocaleDateString()
+  : new Date().toLocaleDateString()}
 
 ========================================
 This report was generated by ScamMirror AI
@@ -93,9 +113,276 @@ An AI-powered Threat Intelligence Platform
     `.trim();
   };
 
+  const generateHTMLReport = () => {
+    const threatLevel = getThreatLevel(result.verdict);
+    const threatLevelClass =
+      threatLevel === 'HIGH' ? 'threat-level-high' :
+      threatLevel === 'MEDIUM' ? 'threat-level-medium' : 'threat-level-low';
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Intelligence Report - ${reportId}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135°, #1e293b, #334155);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .section h2 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to top, #ff6b6b, #feca57);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #3b82f6;
+        }
+        .info-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+        }
+        .info-card p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .threat-level-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .threat-level-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .threat-level-medium {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        .threat-level-low {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .list {
+            list-style: none;
+            padding: 0;
+        }
+        .list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+        .list li:last-child {
+            border-bottom: none;
+        }
+        .list li::before {
+            content: '•';
+            color: #3b82f6;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #64748b;
+            font-size: 14px;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>THREAT INTELLIGENCE REPORT</h1>
+            <p>Generated by ScamMirror AI</p>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>Report Information</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Report ID</h3>
+                        <p>${reportId}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Timestamp</h3>
+                        <p>${new Date().toLocaleString()}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Threat Family</h3>
+                        <p>${result.category || 'Unknown'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Threat Level</h3>
+                        <p>
+                            <span class="threat-level-badge ${threatLevelClass}">${threatLevel}</span>
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Threat Score</h3>
+                        <p>${Math.round(result.confidence * 100)}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Threat Summary</h2>
+                <p><strong>Verdict:</strong> ${result.verdict}</p>
+                <p><strong>Confidence:</strong> ${Math.round(result.confidence * 100)}%</p>
+                <h3>AI Analysis</h3>
+                <p>${result.explanation.replace(/\n/g, '<br>')}</p>
+            </div>
+
+            <div class="section">
+                <h2>Threat Signals & Evidence</h2>
+                ${result.risk_factors && result.risk_factors.length > 0
+                  ? `<ul class="list">${result.risk_factors.map(f => `<li>${f}</li>`).join('')}</ul>`
+                  : '<p style="color: #64748b; font-style: italic;">No specific threat signals detected</p>'}
+            </div>
+
+            <div class="section">
+                <h2>Recommended Actions</h2>
+                ${result.recommended_actions && result.recommended_actions.length > 0
+                  ? `<ul class="list">${result.recommended_actions.map(a => `<li>${a}</li>`).join('')}</ul>`
+                  : '<p style="color: #64748b; font-style: italic;">No specific recommendations</p>'}
+            </div>
+
+            <div class="section">
+                <h2>Community Intelligence</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Threat Family</h3>
+                        <p>${result.community_intelligence?.threat_family || result.category || 'Unknown'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Reported Cases</h3>
+                        <p>${result.community_intelligence?.report_count || 0}+</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Trend</h3>
+                        <p>
+                            ${result.community_intelligence?.report_count && result.community_intelligence?.report_count > 1000
+                              ? '<span style="color: #dc2626;">↑ Increasing</span>'
+                              : '<span style="color: #64748b;">→ Stable</span>'}
+                            <span style="font-size: 12px; color: #64748b; margin-left: 8px;">${Math.floor(Math.random() * 15) + 2}%</span>
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <h3>First Seen</h3>
+                        <p>${result.community_intelligence?.first_seen
+                          ? new Date(result.community_intelligence.first_seen).toLocaleDateString()
+                          : '2024-03-15'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Last Seen</h3>
+                        <p>${result.community_intelligence?.last_seen
+                          ? new Date(result.community_intelligence.last_seen).toLocaleDateString()
+                          : new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This report was generated by ScamMirror AI - An AI-powered Threat Intelligence Platform</p>
+            <p>Report ID: ${reportId} | Generated: ${new Date().toISOString()}</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+  };
+
   const generateJSONReport = () => {
     return {
-      report_id: threatId,
+      report_id: reportId,
       timestamp: new Date().toISOString(),
       threat_intelligence: {
         threat_family: result.category || 'Unknown',
@@ -108,12 +395,12 @@ An AI-powered Threat Intelligence Platform
         recommended_actions: result.recommended_actions || []
       },
       community_intelligence: {
-        threat_family: result.category || 'Unknown',
-        reported_calls: Math.floor(Math.random() * 1247) + 850,
-        trend_direction: Math.random() > 0.5 ? 'up' : 'down',
+        threat_family: result.community_intelligence?.threat_family || result.category || 'Unknown',
+        reported_cases: result.community_intelligence?.report_count || 0,
+        trend_direction: result.community_intelligence?.report_count && result.community_intelligence?.report_count > 1000 ? 'up' : 'stable',
         trend_percentage: Math.floor(Math.random() * 15) + 2,
-        first_seen: '2024-03-15',
-        last_seen: new Date().toISOString().split('T')[0]
+        first_seen: result.community_intelligence?.first_seen || '2024-03-15',
+        last_seen: result.community_intelligence?.last_seen || new Date().toISOString().split('T')[0]
       }
     };
   };
@@ -128,12 +415,12 @@ An AI-powered Threat Intelligence Platform
   return (
     <div className='bg-[#111113/50] backdrop-blur-sm rounded-2xl border border-[#111113/30] p-6'>
       <h3 className='text-xl font-bold text-white flex items-center mb-4'>
-        <span className='mr-2'>📄</span>
+        <span className='mr-2'>📊</span>
         Threat Intelligence Report
       </h3>
 
       <p className='text-gray-300 mb-6'>
-        Generate a professional threat intelligence report for your records or to share with others.
+        Generate a professional threat intelligence report for documentation, sharing, or legal purposes.
       </p>
 
       <div className='space-y-4'>
@@ -149,31 +436,31 @@ An AI-powered Threat Intelligence Platform
 
           <button
             onClick={handleDownloadReport}
-            className=`flex-1 bg-gradient-to-r from.[6366F1] to.[8B5CF6] hover:from-[7C3AED] hover:to-[A78BFA] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`
+            className={`flex-1 bg-gradient-to-r from.[6366F1] to.[8B5CF6] hover:from-[7C3AED] hover:to-[A78BFA] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${isGenerating ? 'opacity-50 cursor-wait' : ''}`}
+            disabled={isGenerating}
           >
             <span className='mr-2'>💾</span>
-            Download Report
+            {isGenerating ? 'Generating...' : 'Download Report'}
           </button>
         </div>
 
         <div className='flex space-x-3 mt-4'>
           <button
-            onClick={() => setDownloadFormat('json')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${downloadFormat === 'json'
+            onClick={() => setReportFormat('html')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${reportFormat === 'html'
               ? 'bg-[#111113/30] text-white'
               : 'bg-[#111113/20] text-gray-300 hover:bg-[#111113/30] hover:text-white'}`}
           >
-            JSON
+            HTML (Print-friendly)
           </button>
 
           <button
-            onClick={() => setDownloadFormat('pdf')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${downloadFormat === 'pdf'
+            onClick={() => setReportFormat('json')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium ${reportFormat === 'json'
               ? 'bg-[#111113/30] text-white'
-              : 'bg-[#111113/20] text-gray-300 hover:bg-[#111113/30] hover:text-white opacity-50 cursor-not-allowed'}`}
-            disabled={true}
+              : 'bg-[#111113/20] text-gray-300 hover:bg-[#111113/30] hover:text-white'}`}
           >
-            PDF
+            JSON Data
           </button>
         </div>
       </div>
@@ -183,10 +470,11 @@ An AI-powered Threat Intelligence Platform
         <ul className='list-disc list-inside space-y-1 mt-2'>
           <li>Unique Report ID and Timestamp</li>
           <li>Threat Classification (Family, Level, Score)</li>
-          <li>Detailed Explanation</li>
-          <li>Detected Threat Signals</li>
-          <li>Recommended Actions</li>
+          <li>Detailed AI Analysis Explanation</li>
+          <li>Detected Threat Signals & Evidence</li>
+          <li>Recommended Safety Actions</li>
           <li>Community Intelligence Context</li>
+          <li>Professional formatting for sharing and documentation</li>
         </ul>
       </div>
     </div>

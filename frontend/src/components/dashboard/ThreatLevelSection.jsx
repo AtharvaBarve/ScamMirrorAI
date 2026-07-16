@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { useAnalysis } from '../../context/AnalysisContext';
 
-const ThreatLevelSection = ({ result }) => {
+const ThreatLevelSection = () => {
+  const { analysisResult: result } = useAnalysis();
+
+  if (!result) return null;
+
   const getThreatLevelColor = (verdict) => {
     const lower = verdict.toLowerCase();
     if (lower.includes('scam')) return '#FF4D6D'; // Danger/Red

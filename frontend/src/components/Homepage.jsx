@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useAnalyze from '../hooks/useAnalyze';
-import ThreatAssessmentDashboard from '../dashboard/ThreatAssessmentDashboard';
+import ThreatAssessmentDashboard from './dashboard/ThreatAssessmentDashboard';
 import ThreatTrendsSection from './ThreatTrendsSection';
 
 const Homepage = () => {
@@ -54,20 +54,41 @@ const Homepage = () => {
   ];
 
   return (
-    <div className='min-h-screen'>
+    <div className='min-h-screen bg-gradient-to-br from-[#09090B] to-[#111113]'>
       {/* Hero Section */}
-      <section className='relative bg-gradient-to-br from-[#09090B] to-[#111113] py-20'>
+      <section className='relative pt-20 pb-16'>
         <div className='max-w-4xl mx-auto px-6 lg:px-12 text-center'>
-          <h1 className='text-4xl font-bold text-white mb-4'>
+          <h1 className='text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#00BFA6] mb-4'>
             ScamMirror AI
           </h1>
-          <p className='text-xl text-[#00E5FF] mb-6'>
+          <p className='text-2xl text-[#00E5FF] mb-6'>
             AI-powered Threat Intelligence Assistant
           </p>
-          <p className='text-lg text-gray-300 mb-8 max-w-2xl mx-auto'>
+          <p className='text-lg text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed'>
             Analyze suspicious messages, URLs and screenshots before you trust them.
           </p>
+          <div className='flex flex-col sm:flex-row sm:space-x-4 justify-center'>
+            <button
+              onClick={() => {
+                setInputType('message');
+                setInputValue(examples[0].text);
+              }}
+              className='px-6 py-3 bg-[#00E5FF] text-[#09090B] font-semibold rounded-xl hover:bg-[#00CCE5] transition-all duration-300 transform hover:-translate-y-1'
+            >
+              Try Example
+            </button>
+            <button
+              onClick={() => {
+                setInputType('message');
+                setInputValue('');
+              }}
+              className='ml-3 px-6 py-3 border border-[#111113/30] bg-[#111113/50] backdrop-blur-sm text-white font-semibold rounded-xl hover:border-[#00E5FF] hover:bg-[#111113/60] transition-all duration-300'
+            >
+              Start Analysis
+            </button>
+          </div>
         </div>
+        <div className='absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#111113] to-transparent pointer-events-none'></div>
       </section>
 
       {/* Main Content */}
@@ -85,7 +106,7 @@ const Homepage = () => {
                 <button
                   type='button'
                   onClick={() => setInputType('message')}
-                  className={`flex-1 px-4 py-3 text-center font-medium
+                  className={`flex-1 px-4 py-3 text-center font-medium transition-all duration-200
                     ${inputType === 'message'
                       ? 'text-white border-b-2 border-[#00E5FF] bg-[#111113/30]'
                       : 'text-gray-400 hover:text-white'}
@@ -96,7 +117,7 @@ const Homepage = () => {
                 <button
                   type='button'
                   onClick={() => setInputType('url')}
-                  className={`flex-1 px-4 py-3 text-center font-medium
+                  className={`flex-1 px-4 py-3 text-center font-medium transition-all duration-200
                     ${inputType === 'url'
                       ? 'text-white border-b-2 border-[#00E5FF] bg-[#111113/30]'
                       : 'text-gray-400 hover:text-white'}
@@ -108,7 +129,7 @@ const Homepage = () => {
                   type='button'
                   onClick={() => setInputType('screenshot')}
                   disabled={isScreenshotLocked}
-                  className={`flex-1 px-4 py-3 text-center font-medium
+                  className={`flex-1 px-4 py-3 text-center font-medium transition-all duration-200
                     ${inputType === 'screenshot'
                       ? 'text-white border-b-2 border-[#00E5FF] bg-[#111113/30]'
                       : 'text-gray-400 hover:text-white opacity-50 cursor-not-allowed'}
@@ -135,10 +156,8 @@ const Homepage = () => {
                           setInputValue('screenshot_placeholder');
                         }
                       }}
-                      className='mb-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#00E5FF] file:text-white hover:file:bg-[#00CCE5']
-                    >
-                      Choose screenshot...
-                    </input>
+                      className='mb-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#00E5FF] file:text-white hover:file:bg-[#00CCE5]'
+                    />
                     <p className='text-xs text-gray-400'>
                       Supported formats: JPG, PNG, Max size: 5MB
                     </p>
@@ -148,7 +167,7 @@ const Homepage = () => {
                     type={inputType === 'message' ? 'text' : 'url'}
                     placeholder={
                       inputType === 'message'
-                        'Paste a suspicious message or email...'
+                        ? 'Paste a suspicious message or email...'
                         : 'Enter full URL (e.g., https://bit.ly/suspicious-link)'
                     }
                     value={inputValue}
@@ -162,10 +181,7 @@ const Homepage = () => {
               <button
                 type='submit'
                 disabled={loading || !inputValue.trim()}
-                className={`w-full bg-[#00E5FF] text-[#09090B] font-bold py-3 px-6 rounded-xl
-                  hover:bg-[#00CCE5]
-                  active:transform hover:scale-[1.02] transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed`}
+                className='w-full bg-[#00E5FF] text-[#09090B] font-bold py-3 px-6 rounded-xl hover:bg-[#00CCE5] active:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 {loading ? 'Analyzing Threat...' : 'Analyze Threat'}
               </button>
@@ -181,7 +197,7 @@ const Homepage = () => {
 
           {/* Results - Phase 2 Threat Assessment Dashboard */}
           {result || loading ? (
-            <ThreatAssessmentDashboard result={result} loading={loading} />
+            <ThreatAssessmentDashboard />
           ) : null}
         </div>
       </section>
@@ -192,22 +208,44 @@ const Homepage = () => {
           <h2 className='text-2xl font-bold text-white mb-8 text-center'>
             Example Analyses
           </h2>
-          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
             {examples.map((example) => (
               <button
                 key={example.id}
                 onClick={() => handleExampleClick(example)}
-                className={`bg-[#111113/30] border border-[#111113/20] rounded-xl p-4 text-left hover:bg-[#111113/40] hover:border-[#00E5FF/30] transition-all duration-200 flex flex-col`}
+                className='group'
               >
-                <div className='text-xl font-bold mb-2'>
-                  {example.label}
+                <div className='bg-[#111113/30] border border-[#111113/20] rounded-xl p-6 hover:bg-[#111113/40] hover:border-[#00E5FF/30] transition-all duration-300 transform hover:-translate-y-1'>
+                  <div className='flex items-center mb-4'>
+                    <span className='text-2xl mr-3'>
+                      {example.label.split(' ')[0]} {/* Extract emoji */}
+                    </span>
+                    <h3 className='text-xl font-bold text-white'>
+                      {example.label.split(' ').slice(1).join(' ')} {/* Text without emoji */}
+                    </h3>
+                  </div>
+                  <p className='text-gray-300 text-sm line-clamp-3 flex-1 mb-4'>
+                    {example.text}
+                  </p>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500'>
+                      Click to analyze
+                    </span>
+                    <span className='text-xs text-[#00E5FF]'>
+                      →
+                    </span>
+                  </div>
                 </div>
-                <p className='text-gray-300 text-sm line-clamp-2'>
-                  {example.text}
-                </p>
               </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Threat Trends Section */}
+      <section className='py-16'>
+        <div className='max-w-4xl mx-auto px-6 lg:px-12'>
+          <ThreatTrendsSection />
         </div>
       </section>
     </div>
