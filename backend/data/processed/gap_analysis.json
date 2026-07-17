@@ -1,0 +1,16 @@
+{
+  "Financial Scam": 917,
+  "Phishing Attempt": 916,
+  "Marketing Spam": 25,
+  "Safe Communication": 0,
+  "Safe Financial Notification": 490,
+  "Business Email Compromise": 200,
+  "Enterprise Credential Phishing": 200,
+  "Fake HR / Payroll": 200,
+  "Corporate Login Scams": 200,
+  "Hinglish Scams": 200,
+  "Marathi-English Scams": 100,
+  "QR/UPI Scams": 200,
+  "Government Impersonation": 200,
+  "Tech Support Scam": 200
+}

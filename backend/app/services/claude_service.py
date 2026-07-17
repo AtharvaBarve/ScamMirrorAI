@@ -148,14 +148,14 @@ Output:"""
         return fallback
 
     @staticmethod
-    async def get_explanation_and_actions(threat_assessment: Dict[str, Any], original_text: str) -> Dict[str, Any]:
+    async def get_explanation_and_actions(threat_assessment: Dict[str, Any], original_text: str, rag_context: str = "") -> Dict[str, Any]:
         """
-        Get only explanation and recommended actions from NIM, given a threat assessment.
+        Get only explanation and recommended actions from NIM, given a threat assessment and RAG context.
         The NIM must NOT modify verdict, confidence, category, or risk_factors.
         """
         # If no API key is set, use heuristic fallback for explanation and actions.
         if not settings.NIM_API_KEY:
-            return ClaudeService._heuristic_explanation_fallback(threat_assessment, original_text)
+            return ClaudeService._heuristic_explanation_fallback(threat_assessment, original_text, rag_context)
 
         start_time = time.time()
         # Build the prompt for explanation only
@@ -173,16 +173,18 @@ Output:"""
             signals_detail.append(f"- {s['name']}: {s['description']} (evidence: {s['evidence']})")
         signals_str = "\n".join(signals_detail) if signals_detail else "none"
 
-        prompt = f"""You are ScamMirror, an expert scam explainer.
+        prompt = f"""You are ScamMirror, an expert scam explainer and threat intelligence analyst.
 A message has already been classified as {verdict} with confidence {confidence}.
 The category is {category}.
 The detected risk factors are: {risk_factors_str}.
 The detailed threat signals are:
 {signals_str}
 
+{rag_context}
+
 Your ONLY responsibility is to:
 1. Explain WHY this message was classified this way, based on the detected threat signals.
-2. Explain the detected Threat Signals in simple terms.
+2. If any RETRIEVED THREAT INTELLIGENCE (like CERT-In, RBI advisories, or known campaigns) is provided above, explicitly cite it in your explanation to back up your claims.
 3. Give actionable recommendations for the user.
 
 You MUST NOT change the verdict, confidence, or category.
@@ -193,7 +195,7 @@ Provide your response as a JSON object with only two keys: "explanation" and "re
 Example:
 Input: "Congratulations! You've won a free iPhone. Click here to claim now!"
 (Assume classification: Likely Scam, category: Financial Scam, signals: [Urgency, Financial Incentive])
-Output: {{"explanation": "The message contains urgent language and promises of free prizes, which are common scam tactics.", "recommended_actions": ["Do not click any links", "Delete the message"]}}
+Output: {{"explanation": "The message contains urgent language and promises of free prizes, which are common scam tactics. This aligns with recent CERT-In advisories regarding fake prize schemes.", "recommended_actions": ["Do not click any links", "Delete the message"]}}
 
 Now, here is the actual message:
 \"\"\"{original_text}\"\"\"
@@ -258,7 +260,7 @@ Remember: only explain and recommend, do not question the classification.
         return ClaudeService._heuristic_explanation_fallback(threat_assessment, original_text)
 
     @staticmethod
-    def _heuristic_explanation_fallback(threat_assessment: Dict[str, Any], original_text: str) -> Dict[str, Any]:
+    def _heuristic_explanation_fallback(threat_assessment: Dict[str, Any], original_text: str, rag_context: str = "") -> Dict[str, Any]:
         """
         Fallback explanation when NIM is unavailable.
         Generates a basic explanation based on the threat assessment.
@@ -281,6 +283,9 @@ Remember: only explain and recommend, do not question the classification.
             signal_descs = [f"{s.get('name', '')}: {s.get('description', '')}" for s in signals if s.get("description")]
             if signal_descs:
                 explanation += " Specifically, it detected: " + "; ".join(signal_descs) + "."
+
+        if rag_context:
+            explanation += "\n\n(NIM is offline. Heuristic RAG Data Dump):\n" + rag_context
 
         # Provide some generic actions based on verdict
         if verdict == "Likely Scam":

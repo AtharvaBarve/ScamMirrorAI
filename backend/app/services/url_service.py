@@ -18,11 +18,31 @@ async def fetch_text(url: str) -> str:
     if not url.startswith(('http://', 'https://')):
         return "[Error: Invalid URL format. Please provide a URL starting with http:// or https://]"
 
+    # Heuristics: Domain Intelligence
+    suspicious_metadata = []
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    
+    # 1. Suspicious TLDs
+    if domain.endswith(('.xyz', '.top', '.club', '.online', '.site', '.click')):
+        suspicious_metadata.append("WARNING: URL uses a highly suspicious top-level domain often associated with spam/scams.")
+        
+    # 2. IP-Based URLs
+    import re
+    if re.match(r'^[\d\.]+(:\d+)?$', domain):
+        suspicious_metadata.append("WARNING: URL uses a raw IP address instead of a registered domain name (common in phishing).")
+        
+    # 3. URL Shorteners
+    shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'ow.ly', 'is.gd']
+    if any(s in domain for s in shorteners):
+        suspicious_metadata.append("WARNING: URL is masked using a link shortener service to hide the true destination.")
+
     # Check cache first
     cache_key = f"url_text:{url}"
     cached = get(cache_key)
     if cached is not None:
-        return cached
+        return "\n".join(suspicious_metadata) + "\n\n" + cached if suspicious_metadata else cached
 
     try:
         async with httpx.AsyncClient(
@@ -74,6 +94,9 @@ async def fetch_text(url: str) -> str:
         max_chars = 3000
         if len(combined) > max_chars:
             combined = combined[:max_chars] + "... [truncated]"
+            
+        if suspicious_metadata:
+            combined = "\n".join(suspicious_metadata) + "\n\n--- Extracted Content ---\n" + combined
 
         # Cache
         set(cache_key, combined)
