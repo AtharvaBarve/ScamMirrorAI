@@ -46,7 +46,7 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          Instantly analyze suspicious texts, emails, and URLs locally. ScamMirror AI combines heuristic rules with LLaMA 3 to intercept social engineering attacks before they compromise your data.
+          Instantly analyze suspicious texts, emails, and URLs. ScamMirror AI combines a fine-tuned DeBERTa classifier with a ChromaDB RAG pipeline and NVIDIA NIM to intercept social engineering attacks before they compromise your data.
         </motion.p>
 
         <motion.div 
@@ -58,7 +58,13 @@ const HeroSection = () => {
           <Button size="lg" className="w-full sm:w-auto px-8 py-4 text-lg" onClick={() => navigate('/login')}>
             Try the Dashboard
           </Button>
-          <a href="#features">
+          <a href="#/features" onClick={(e) => {
+                  if (window.location.hash !== '#/') {
+                      e.preventDefault();
+                      navigate('/');
+                      setTimeout(() => document.getElementById('features')?.scrollIntoView(), 100);
+                  }
+              }}>
             <Button variant="secondary" size="lg" className="w-full sm:w-auto px-8 py-4 text-lg group bg-surface/50 border-border hover:bg-surface">
               Explore Features
               <ChevronRight className="w-5 h-5 ml-2 text-gray-400 group-hover:text-white transition-colors" />

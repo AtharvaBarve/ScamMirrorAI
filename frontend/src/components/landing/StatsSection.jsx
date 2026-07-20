@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const StatsSection = () => {
   const stats = [
-    { value: '0', label: 'Data Logged' },
+    { value: '34', label: 'Data Logged' },
     { value: 'Local', label: 'AI Inference' },
     { value: '<1s', label: 'Analysis Time' },
     { value: 'Hybrid', label: 'Detection Engine' }

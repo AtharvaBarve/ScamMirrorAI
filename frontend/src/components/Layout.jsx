@@ -24,9 +24,29 @@ const Layout = () => {
             
             {/* Main Links */}
             <nav className="hidden lg:flex items-center space-x-8">
-              <a href="#features" className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">How it Works</a>
-              <a href="#tech" className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">Tech Stack</a>
-              <a href="#faq" className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">FAQ</a>
+              <a href="#/features" onClick={(e) => {
+                  if (window.location.hash !== '#/') {
+                      e.preventDefault();
+                      navigate('/');
+                      setTimeout(() => document.getElementById('features')?.scrollIntoView(), 100);
+                  }
+              }} className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">How it Works</a>
+              
+              <a href="#/tech" onClick={(e) => {
+                  if (window.location.hash !== '#/') {
+                      e.preventDefault();
+                      navigate('/');
+                      setTimeout(() => document.getElementById('tech')?.scrollIntoView(), 100);
+                  }
+              }} className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">Tech Stack</a>
+              
+              <a href="#/faq" onClick={(e) => {
+                  if (window.location.hash !== '#/') {
+                      e.preventDefault();
+                      navigate('/');
+                      setTimeout(() => document.getElementById('faq')?.scrollIntoView(), 100);
+                  }
+              }} className="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200">FAQ</a>
             </nav>
 
             {/* Right Actions */}
@@ -62,10 +82,10 @@ const Layout = () => {
                 An open-source Hybrid AI threat detection engine built for the ET AI Hackathon 2026. Designed to intercept social engineering attacks locally.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary/50 text-gray-400 hover:text-white transition-all">
+                <a href="https://github.com/ScamMirrorAI" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary/50 text-gray-400 hover:text-white transition-all">
                   <Code className="w-5 h-5" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary/50 text-gray-400 hover:text-white transition-all">
+                <a href="mailto:contact@scammirror.ai" className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary/50 text-gray-400 hover:text-white transition-all">
                   <Mail className="w-5 h-5" />
                 </a>
               </div>

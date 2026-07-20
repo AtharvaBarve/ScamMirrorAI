@@ -7,7 +7,7 @@ const FeaturesSection = () => {
   const features = [
     {
       title: 'Hybrid AI Engine',
-      description: 'Combines heuristic rule-based detection with local Large Language Models (LLaMA 3) to analyze text semantics and intent.',
+      description: 'Combines heuristic entity extraction with a fine-tuned DeBERTa classifier and ChromaDB RAG to understand the semantic intent of messages.',
       icon: <Cpu className="w-8 h-8 text-primary" />
     },
     {

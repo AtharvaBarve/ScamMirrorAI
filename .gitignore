@@ -80,5 +80,8 @@ frontend/frontend.log
 *.db
 scam_mirror.db
 
+# Vector Database
+backend/chroma_db/
+
 # Backend specific
 backend/backend/

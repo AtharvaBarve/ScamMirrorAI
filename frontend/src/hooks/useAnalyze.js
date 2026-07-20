@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import axios from 'axios';
+
+// Configure base URL for production deployment
+if (import.meta.env.VITE_API_URL) {
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+}
 import { useAnalysis } from '../context/AnalysisContext';
 
 /**

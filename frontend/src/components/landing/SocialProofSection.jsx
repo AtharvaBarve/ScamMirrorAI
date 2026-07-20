@@ -6,8 +6,8 @@ const SocialProofSection = () => {
     'FastAPI',
     'React',
     'Tailwind CSS',
-    'Framer Motion',
-    'LLaMA 3'
+    'ChromaDB',
+    'DeBERTa'
   ];
 
   return (

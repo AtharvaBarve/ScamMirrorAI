@@ -7,6 +7,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import socket
+import ipaddress
+
+def is_safe_url(url: str) -> bool:
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        # Resolve hostname to IP
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+        # Check if it's a private or loopback IP
+        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_multicast:
+            return False
+        return True
+    except Exception:
+        # If DNS resolution fails or invalid IP, fail closed
+        return False
+
 async def fetch_text(url: str) -> str:
     """
     Fetch the URL and extract visible text.
@@ -17,6 +38,9 @@ async def fetch_text(url: str) -> str:
     # Validate URL format
     if not url.startswith(('http://', 'https://')):
         return "[Error: Invalid URL format. Please provide a URL starting with http:// or https://]"
+        
+    if not is_safe_url(url):
+        return "[Error: URL resolves to an internal or reserved IP address which is not permitted.]"
 
     # Heuristics: Domain Intelligence
     suspicious_metadata = []
